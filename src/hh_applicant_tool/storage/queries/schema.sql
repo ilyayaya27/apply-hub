@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS skipped_vacancies (
     alternate_url TEXT,
     name TEXT,
     employer_name TEXT,
+    matched TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (resume_id, vacancy_id)
 );

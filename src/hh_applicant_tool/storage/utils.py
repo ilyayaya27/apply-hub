@@ -11,6 +11,16 @@ MIGRATION_PATH: Path = QUERIES_PATH / "migrations"
 logger: logging.Logger = logging.getLogger(__package__)
 
 
+def _ensure_column(
+    conn: sqlite3.Connection, table: str, column: str, decl: str
+) -> None:
+    """Идемпотентно добавляет колонку, если её ещё нет (само-миграция)."""
+    existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+        logger.info("Добавлена колонка %s.%s", table, column)
+
+
 def init_db(conn: sqlite3.Connection) -> None:
     """Создает схему БД"""
     changes_before = conn.total_changes
@@ -18,6 +28,9 @@ def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(
         (QUERIES_PATH / "schema.sql").read_text(encoding="utf-8")
     )
+
+    # Само-миграции для уже существующих баз (schema.sql их не трогает)
+    _ensure_column(conn, "skipped_vacancies", "matched", "TEXT")
 
     if conn.total_changes > changes_before:
         logger.info("Применена схема бд")

@@ -12,4 +12,5 @@ class SkippedVacancyModel(BaseModel):
     alternate_url: str | None = None
     name: str | None = None
     employer_name: str | None = None
+    matched: str | None = None
     created_at: datetime | None = None

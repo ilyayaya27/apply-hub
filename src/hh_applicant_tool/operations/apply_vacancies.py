@@ -176,6 +176,18 @@ class Operation(BaseOperation):
             help="Пропускать отклик на вакансии с более чем N откликов (не реализован)",
         )
         parser.add_argument(
+            "--apply-delay-min",
+            type=float,
+            default=0.0,
+            help="Минимальная пауза (сек) между откликами — имитация живого просмотра. По умолчанию 0 (без паузы).",
+        )
+        parser.add_argument(
+            "--apply-delay-max",
+            type=float,
+            default=0.0,
+            help="Максимальная пауза (сек) между откликами. Реальная пауза — случайная в диапазоне [min, max].",
+        )
+        parser.add_argument(
             "--dry-run",
             help="Не отправлять отклики, а только выводить информацию",
             action=argparse.BooleanOptionalAction,
@@ -332,6 +344,8 @@ class Operation(BaseOperation):
         self.label = args.label
         self.left_lng = args.left_lng
         self.max_responses = args.max_responses
+        self.apply_delay_min = args.apply_delay_min
+        self.apply_delay_max = args.apply_delay_max
         self.metro = args.metro
         self.no_magic = args.no_magic
         self.only_with_salary = args.only_with_salary
@@ -474,6 +488,42 @@ class Operation(BaseOperation):
                 if key_skills:
                     parts.append(f"Ключевые навыки: {key_skills}")
 
+        return "\n".join(parts)
+
+    def _build_cover_letter_message(self, vacancy: dict, resume: dict) -> str:
+        """Собирает сообщение для AI-адаптации сопроводительного письма.
+
+        AI не пишет письмо с нуля, а слегка подгоняет базовое письмо
+        кандидата (self.cover_letter из -L/letter.txt) под конкретную
+        вакансию. В сообщение кладём базовое письмо и описание вакансии —
+        этого достаточно и почти не оставляет места для выдумок.
+        """
+        full_vacancy = None
+        if vacancy.get("id"):
+            try:
+                full_vacancy = self.api_client.get(
+                    f"/vacancies/{vacancy['id']}"
+                )
+            except Exception as e:
+                logger.warning(
+                    "Не удалось получить полную вакансию %s: %s",
+                    vacancy.get("id"),
+                    e,
+                )
+
+        vacancy_context = self._build_vacancy_context(
+            vacancy, full_vacancy=full_vacancy, include_full=True
+        )
+
+        parts = [
+            self.message_prompt,
+            "",
+            "=== БАЗОВОЕ ПИСЬМО (его нужно слегка адаптировать) ===",
+            self.cover_letter,
+            "",
+            "=== ВАКАНСИЯ ===",
+            vacancy_context,
+        ]
         return "\n".join(parts)
 
     def _ask_ai_suitability(
@@ -859,14 +909,15 @@ class Operation(BaseOperation):
                     )
                     continue
 
-                if self._is_excluded(vacancy):
+                if matched := self._is_excluded(vacancy):
                     logger.info(
-                        "Вакансия попала под фильтр: %s",
+                        "Вакансия попала под фильтр (слово «%s»): %s",
+                        matched,
                         vacancy["alternate_url"],
                     )
 
                     self._save_skipped_vacancy(
-                        vacancy, "excluded_filter", resume["id"]
+                        vacancy, "excluded_filter", resume["id"], matched=matched
                     )
 
                     self.api_client.put(
@@ -975,14 +1026,8 @@ class Operation(BaseOperation):
                     "response_letter_required"
                 ):
                     if self.cover_letter_ai:
-                        msg = self.message_prompt + "\n\n"
-                        msg += (
-                            "Название вакансии: "
-                            + message_placeholders["vacancy_name"]
-                        )
-                        msg += (
-                            "Мое резюме: "
-                            + message_placeholders["resume_title"]
+                        msg = self._build_cover_letter_message(
+                            vacancy, resume
                         )
                         logger.debug("prompt: %s", msg)
                         letter = self.cover_letter_ai.complete(msg)
@@ -1017,6 +1062,7 @@ class Operation(BaseOperation):
                                     "📨 Отправили отклик на вакансию с тестом",
                                     vacancy["alternate_url"],
                                 )
+                                self._human_delay()
                             else:
                                 err = result.get("error")
 
@@ -1055,6 +1101,7 @@ class Operation(BaseOperation):
                                 "📨 Отправили отклик на вакансию",
                                 vacancy["alternate_url"],
                             )
+                            self._human_delay()
                     except Redirect:
                         logger.warning(
                             f"Игнорирую перенаправление на форму: {vacancy['alternate_url']}"  # noqa: E501
@@ -1079,6 +1126,7 @@ class Operation(BaseOperation):
                                         "📨 Отправили отклик на вакансию после капчи",
                                         vacancy["alternate_url"],
                                     )
+                                    self._human_delay()
                             else:
                                 logger.error("Не удалось решить капчу")
                                 raise
@@ -1449,9 +1497,23 @@ class Operation(BaseOperation):
             if page >= res["pages"] - 1:
                 return
 
-    def _is_excluded(self, vacancy: SearchVacancy) -> bool:
+    def _human_delay(self) -> None:
+        """Случайная пауза между откликами — имитация живого просмотра.
+        Включается флагами --apply-delay-min/--apply-delay-max."""
+        hi = max(self.apply_delay_min, self.apply_delay_max)
+        if hi <= 0:
+            return
+        lo = max(0.0, min(self.apply_delay_min, self.apply_delay_max))
+        pause = random.uniform(lo, hi)
+        logger.info("⏳ Пауза %.0f сек перед следующим откликом", pause)
+        time.sleep(pause)
+
+    def _is_excluded(self, vacancy: SearchVacancy) -> str | None:
+        """Возвращает сработавшее слово фильтра (или None, если вакансия
+        не исключена). Слово сохраняется в чёрный список — удобно для
+        ревью и тюнинга фильтра."""
         if not self.excluded_filter:
-            return False
+            return None
 
         snippet = vacancy.get("snippet", {})
         vacancy_summary = " ".join(
@@ -1471,8 +1533,8 @@ class Operation(BaseOperation):
             self.excluded_filter, re.IGNORECASE
         )
 
-        if excluded_pat.search(vacancy_summary):
-            return True
+        if m := excluded_pat.search(vacancy_summary):
+            return m.group(0)
 
         # Грузим полный текст вакансии только, если предыдущий фильтр не сработал
         r = self.tool.session.get("https://hh.ru/vacancy/" + vacancy["id"])
@@ -1483,7 +1545,8 @@ class Operation(BaseOperation):
         )
         description = strip_tags(description)
         logger.debug(description[:2047])
-        return bool(excluded_pat.search(description))
+        m = excluded_pat.search(description)
+        return m.group(0) if m else None
 
     def _is_vacancy_already_skipped(
         self, vacancy: SearchVacancy, resume_id: str | None = None
@@ -1511,7 +1574,11 @@ class Operation(BaseOperation):
             return False
 
     def _save_skipped_vacancy(
-        self, vacancy: SearchVacancy, reason: str, resume_id: str | None = None
+        self,
+        vacancy: SearchVacancy,
+        reason: str,
+        resume_id: str | None = None,
+        matched: str | None = None,
     ) -> None:
         try:
             employer = vacancy.get("employer", {})
@@ -1523,6 +1590,7 @@ class Operation(BaseOperation):
                     "alternate_url": vacancy.get("alternate_url"),
                     "name": vacancy.get("name"),
                     "employer_name": employer.get("name"),
+                    "matched": matched,
                     "created_at": datetime.now(),
                 }
             )

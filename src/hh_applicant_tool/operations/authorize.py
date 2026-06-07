@@ -12,7 +12,7 @@ from urllib.parse import parse_qs, urlsplit
 try:
     from playwright.async_api import async_playwright
 except ImportError:
-    pass
+    async_playwright = None
 
 from ..main import BaseOperation
 from ..utils.terminal import print_kitty_image, print_sixel_mage
@@ -95,6 +95,11 @@ class Operation(BaseOperation):
         return 0
 
     async def _run(self) -> None:
+        if async_playwright is None:
+            raise RuntimeError(
+                "Не установлен Playwright. Установите зависимости: pip install playwright && playwright install chromium"
+            )
+
         args = self._args
         api_client = self._tool.api_client
         storage = self._tool.storage

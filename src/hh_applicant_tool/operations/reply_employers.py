@@ -116,9 +116,41 @@ class Operation(BaseOperation):
         self.message_prompt = args.message_prompt
         self.cover_letter_ai = (tool.get_cover_letter_ai(args.system_prompt) if args.use_ai else None)
         self.period = args.period
+        self._resume_ctx_cache: dict[str, str] = {}
 
         logger.debug(f"{self.reply_message = }")
         self.reply_employers()
+
+    def _build_resume_context(self, resume: dict) -> str:
+        """Собирает краткое содержимое резюме (должность, навыки, опыт с
+        описаниями), чтобы AI мог отвечать на вопросы работодателя по фактам,
+        а не выдумывать."""
+        rid = resume.get("id")
+        if rid in self._resume_ctx_cache:
+            return self._resume_ctx_cache[rid]
+
+        ctx = ""
+        try:
+            full = self.api_client.get(f"/resumes/{rid}")
+            parts: list[str] = []
+            if full.get("title"):
+                parts.append(f"Должность: {full['title']}")
+            if full.get("skills"):
+                parts.append(f"О себе: {full['skills']}")
+            if full.get("skill_set"):
+                parts.append("Навыки: " + ", ".join(full["skill_set"]))
+            if full.get("experience"):
+                parts.append("Опыт работы:")
+                for exp in full["experience"]:
+                    position = exp.get("position", "")
+                    description = (exp.get("description") or "").strip()
+                    parts.append(f"- {position}: {description}")
+            ctx = "\n".join(parts)
+        except Exception as e:
+            logger.warning("Не удалось получить резюме для контекста AI: %s", e)
+
+        self._resume_ctx_cache[rid] = ctx
+        return ctx
 
     def reply_employers(self):
         blacklist = set(self.tool.get_blacklisted())
@@ -254,16 +286,33 @@ class Operation(BaseOperation):
                         logger.debug(f"Template message: {send_message}")
                     elif self.cover_letter_ai:
                         try:
+                            resume_context = self._build_resume_context(resume)
                             ai_query = (
-                                f"Вакансия: {placeholders['vacancy_name']}\n"
-                                f"История переписки:\n"
+                                f"Вакансия: {placeholders['vacancy_name']}\n\n"
+                                f"=== РЕЗЮМЕ (факты обо мне) ===\n"
+                                f"{resume_context}\n\n"
+                                f"=== ИСТОРИЯ ПЕРЕПИСКИ ===\n"
                                 + "\n".join(message_history[-10:])
-                                + f"\n\nИнструкция: {self.message_prompt}"
+                                + f"\n\nИнструкция: {self.message_prompt} "
+                                "Отвечай только на обычные вопросы работодателя, "
+                                "опираясь на факты из резюме выше. Если нужного "
+                                "факта нет — не выдумывай. Не придумывай имя "
+                                "собеседника. ВАЖНО: если работодатель прислал "
+                                "анкету — список из нескольких вопросов, "
+                                "требующих личных решений (зарплата, график, "
+                                "занятость, тестовое, готовность к условиям) — "
+                                "НЕ отвечай, выведи строго одно слово: __SKIP__"
                             )
                             send_message = self.cover_letter_ai.complete(
                                 ai_query
                             )
                             logger.debug(f"AI message: {send_message}")
+                            if "__SKIP__" in send_message:
+                                print(
+                                    "📋 Анкета — обработай вручную:",
+                                    vacancy["alternate_url"],
+                                )
+                                continue
                         except AIError as ex:
                             logger.warning(
                                 f"Ошибка OpenAI для чата {nid}: {ex}"
