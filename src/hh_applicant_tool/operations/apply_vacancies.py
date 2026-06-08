@@ -1205,6 +1205,16 @@ class Operation(BaseOperation):
         """Парсит тесты"""
         r = self.tool.session.get(response_url)
 
+        # Тесты/капча работают через ВЕБ-сессию (cookies.txt), а не через
+        # API-токен. Веб-куки истекают (~раз в пару недель) и НЕ обновляются
+        # автоматически. Если протухли — hh редиректит на логин, и в HTML нет
+        # данных теста. Раньше это маскировалось под «tests not found».
+        if "account/login" in r.url:
+            raise ValueError(
+                "Веб-сессия истекла (куки разлогинены) — переавторизуйтесь: "
+                "`authorize`. Тесты и капча требуют свежей веб-сессии."
+            )
+
         tests_marker = ',"vacancyTests":'
         start_tests = r.text.find(tests_marker)
         end_tests = r.text.find(',"counters":', start_tests)
