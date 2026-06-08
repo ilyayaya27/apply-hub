@@ -1217,16 +1217,19 @@ class Operation(BaseOperation):
 
         tests_marker = ',"vacancyTests":'
         start_tests = r.text.find(tests_marker)
-        end_tests = r.text.find(',"counters":', start_tests)
-
-        if -1 in (start_tests, end_tests):
+        if start_tests == -1:
             raise ValueError("tests not found.")
 
+        # Значение vacancyTests — это JSON-объект. Раньше его конец искали по
+        # маркеру ',"counters":', но hh вставил между ними новые ключи
+        # (hhProGenerateResponseLetter, hhProActiveSubscription) → в кусок
+        # попадал лишний JSON и парс падал с «Extra data». Читаем ровно один
+        # JSON-объект через raw_decode — он сам остановится на его конце.
         try:
-            return utils.json.loads(
-                r.text[start_tests + len(tests_marker) : end_tests],
-                strict=False,
+            data, _ = json.JSONDecoder(strict=False).raw_decode(
+                r.text, start_tests + len(tests_marker)
             )
+            return data
         except json.JSONDecodeError as ex:
             raise ValueError("Не могу распарсить vacancyTests.") from ex
 
