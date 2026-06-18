@@ -275,9 +275,11 @@ class Operation(BaseOperation):
                     last_message["author"]["participant_type"] == "employer"
                 )
 
-                if is_employer_message or not negotiation.get(
-                    "viewed_by_opponent"
-                ):
+                # Отвечаем ТОЛЬКО когда работодатель реально написал последним.
+                # Раньше было "or not viewed_by_opponent" — из-за чего бот слал
+                # ответ даже на НЕпросмотренные отклики (работодатель молчал, а AI
+                # галлюцинировал «Спасибо за ваш ответ…»). Это и был баг.
+                if is_employer_message:
                     send_message = ""
                     if self.reply_message:
                         send_message = (
