@@ -80,7 +80,8 @@ cython_debug/
 Session.vim
 
 # AI assistants / IDE agents
-.claude/
+.claude/*
+!.claude/skills/          # скил hh-clicker должен ехать в репозиторий
 CLAUDE.md
 .serena/
 .codex/

@@ -127,13 +127,14 @@ python3 -m venv .venv
 
 ---
 
-## 6. Настройка AI (OpenRouter) — один раз
+## 6. Настройка AI (OpenRouter **или бесплатный Groq**) — один раз
 
 AI нужен для двух задач:
 - генерация сопроводительного письма под каждую вакансию (`apply-vacancies --ai`);
 - ответы работодателям в чатах (`reply-employers --ai`).
 
-Обе используют одну секцию конфига — `openai_cover_letter`.
+Обе используют одну секцию конфига — `openai_cover_letter`. Провайдер на выбор:
+**OpenRouter** (§6.1–6.2) или **Groq** (§6.2-альт) — Groq полностью бесплатен, бери его, если не готов платить.
 
 ### 6.1. Получить бесплатный ключ OpenRouter
 
@@ -159,6 +160,23 @@ AI нужен для двух задач:
 
 > Бесплатный тариф ограничен (порядка **50 запросов/день**). Для больших рассылок пополните баланс OpenRouter (~$10) или возьмите платную модель.
 
+### 6.2-альт. Бесплатная альтернатива — Groq (если не хотите платить)
+
+[Groq](https://groq.com) даёт **бесплатный** OpenAI-совместимый API со щедрым дневным лимитом — отличный выбор, если не готовы пополнять OpenRouter.
+
+1. Зайдите на **[console.groq.com/keys](https://console.groq.com/keys)** (вход через Google/GitHub).
+2. **Create API Key** → скопируйте ключ вида `gsk_...` (показывается один раз).
+3. Пропишите в **ту же** секцию конфига:
+
+```bash
+.venv/bin/python -m hh_applicant_tool config -s openai_cover_letter.base_url https://api.groq.com/openai/v1/chat/completions
+.venv/bin/python -m hh_applicant_tool config -s openai_cover_letter.model llama-3.3-70b-versatile
+.venv/bin/python -m hh_applicant_tool config -s openai_cover_letter.api_key gsk_ВАШ_КЛЮЧ
+.venv/bin/python -m hh_applicant_tool config -s openai_cover_letter.temperature 0.5
+```
+
+> ⚠️ Лимиты Groq — **на аккаунт**, не на ключ (дневной лимит токенов). Для рассылки с одного аккаунта хватает. Если гоняете **2+ hh-аккаунта** под одним Groq-аккаунтом — лимит общий, упрётесь в 429: заведите отдельные Groq-аккаунты или возьмите платный план/другой провайдер.
+
 ### 6.3. Использование
 
 Сопроводительные письма под каждую вакансию (промпт лежит в `cover_letter_prompt.txt` в корне проекта):
@@ -176,10 +194,7 @@ AI нужен для двух задач:
 .venv/bin/python -m hh_applicant_tool reply-employers --ai
 ```
 
-`reply-employers` пройдёт по всем активным чатам и ответит там, где:
-
-- последнее сообщение от работодателя, или
-- ваш ответ ещё не прочитан.
+`reply-employers` пройдёт по активным чатам и ответит **только там, где последнее сообщение — от работодателя** (он реально что-то написал и ждёт ответа). Молчащим работодателям и непросмотренным откликам бот больше **не** пишет — анкеты (зарплата/график/тестовое) тоже пропускает на ручную обработку.
 
 ---
 
@@ -244,7 +259,12 @@ cd /home/alice/Documents/hh-applicant-tool
 .venv/bin/python -m hh_applicant_tool config -u proxy_url
 ```
 
-Конфиг по умолчанию: `~/.config/hh-applicant-tool/config.json`
+**Путь к конфигу зависит от ОС** (точный путь всегда покажет `config -p`):
+- **Linux:** `~/.config/hh-applicant-tool/config.json`
+- **macOS:** `~/Library/Application Support/hh-applicant-tool/config.json`
+- **Windows:** `%APPDATA%\hh-applicant-tool\config.json`
+
+Рядом с конфигом лежат `cookies.txt` (веб-сессия) и `data` (SQLite — история откликов, чёрный список).
 
 ---
 
