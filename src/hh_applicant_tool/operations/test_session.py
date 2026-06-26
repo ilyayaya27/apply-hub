@@ -32,6 +32,11 @@ class Operation(BaseOperation):
         r = tool.session.get("https://hh.ru")
 
         if m := re.search(r'^\s+login: "([^"]+)', r.text, re.MULTILINE):
-            print("Вы вошли как", m.group(1))
+            print("✅ Браузерная (веб) сессия активна, вы вошли как", m.group(1))
         else:
-            logger.warning("Вы не авторизованы!")
+            logger.warning(
+                "Браузерная (cookie) ВЕБ-сессия не активна. Она нужна только для "
+                "решения тестов и капчи и ЖИВЁТ ОТДЕЛЬНО от API-токена. "
+                "Если whoami/apply работают — с авторизацией всё ок. "
+                "Обновить веб-сессию: `authorize`."
+            )

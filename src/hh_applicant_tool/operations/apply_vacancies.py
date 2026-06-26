@@ -884,7 +884,10 @@ class Operation(BaseOperation):
                             "Вы получили отказ от %s",
                             vacancy["alternate_url"],
                         )
-                        print("⛔ Пришел отказ от", vacancy["alternate_url"])
+                        print(
+                            "⏩ Пропускаю — по этой вакансии ранее УЖЕ был отказ:",
+                            vacancy["alternate_url"],
+                        )
                     continue
 
                 if vacancy.get("archived"):
@@ -1549,14 +1552,27 @@ class Operation(BaseOperation):
         if m := excluded_pat.search(vacancy_summary):
             return m.group(0)
 
-        # Грузим полный текст вакансии только, если предыдущий фильтр не сработал
-        r = self.tool.session.get("https://hh.ru/vacancy/" + vacancy["id"])
-        r.raise_for_status()
-
-        description, _ = self.json_decoder.raw_decode(
-            re.search(r'"description": (.*)', r.text).group(1)
-        )
-        description = strip_tags(description)
+        # Грузим полный текст вакансии только, если предыдущий фильтр не сработал.
+        # Страница может НЕ содержать "description" (редирект на логин при
+        # протухшей веб-сессии, капча, иная вёрстка) → re.search вернёт None.
+        # Раньше тут падало: 'NoneType' object has no attribute 'group'.
+        try:
+            r = self.tool.session.get("https://hh.ru/vacancy/" + vacancy["id"])
+            r.raise_for_status()
+            desc_match = re.search(r'"description": (.*)', r.text)
+            if not desc_match:
+                logger.debug(
+                    "Описание вакансии %s не найдено — пропускаю фильтр по описанию",
+                    vacancy["id"],
+                )
+                return None
+            description, _ = self.json_decoder.raw_decode(desc_match.group(1))
+            description = strip_tags(description)
+        except Exception as ex:
+            logger.debug(
+                "Не смог проверить описание вакансии %s: %s", vacancy["id"], ex
+            )
+            return None
         logger.debug(description[:2047])
         m = excluded_pat.search(description)
         return m.group(0) if m else None

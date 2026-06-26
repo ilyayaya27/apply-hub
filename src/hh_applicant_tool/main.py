@@ -506,5 +506,11 @@ class HHApplicantTool(MegaTool):
 
 
 def main(argv: Sequence[str] | None = None) -> None | int:
+    # Строчная буферизация stdout: при фоновом запуске (> log 2>&1 &) вывод
+    # появляется сразу, а не копится — раньше казалось, что процесс завис.
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     return HHApplicantTool().run(argv)

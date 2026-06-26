@@ -64,5 +64,9 @@ class MegaTool(VersionChecker):
         return Path("/.dockerenv").exists()
     
     def _check_system(self: HHApplicantTool):
-        if not self.storage.settings.get_value("disable_version_check", False):
+        # В форке проверка версии ВЫКЛЮЧЕНА по умолчанию: форк намеренно отстаёт
+        # от upstream, и предупреждение «обновите до X» вредно (перезатрёт форк)
+        # + засоряет stdout и ломает JSON у call-api. Включить: настройка
+        # disable_version_check = false.
+        if not self.storage.settings.get_value("disable_version_check", True):
             self._check_version()
