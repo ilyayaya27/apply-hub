@@ -53,6 +53,15 @@ describe('classifyApplyRoute', () => {
     expect(r.primaryUrl).toMatch(/@/);
   });
 
+  it('does not route #резюме post with email to email', () => {
+    const r = classifyApplyRoute({
+      text: '#резюме Frontend\ncontact@someone.com',
+      links: [],
+    });
+    expect(r.route).toBe('manual');
+    expect(r.route).not.toBe('email');
+  });
+
   it('routes djinni to form', () => {
     const r = classifyApplyRoute({
       text: 'https://djinni.co/jobs/12345-frontend/',

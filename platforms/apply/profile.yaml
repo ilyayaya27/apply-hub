@@ -11,6 +11,7 @@ keywords:
   - next.js
   - nuxt
 exclude_patterns:
+  - /#\s*резюме|#\s*resume\b|ищу\s+работу|open\s+to\s+work/i
   - /1с|1c\b|bitrix|php only|golang only|java only|devops only/i
   - /seo|копирайт|маркетолог|бухгалтер|qa only|тестировщик only/i
   - /designer only|дизайнер only/i

@@ -17,6 +17,7 @@ const FORM_HINTS = [
 ];
 
 import { careerHostPatterns } from '../adapters/platforms/hosts.js';
+import { isCandidateResumePost } from './resume-post.js';
 
 /** Career sites → form route (Playwright); adapters in adapters/platforms/ */
 const CAREER_FORM_HOSTS = careerHostPatterns();
@@ -79,6 +80,14 @@ export const classifyApplyRoute = ({ text, links }) => {
     if (TG_RE.test(url) && !/revacancy\/\d+$/i.test(url)) {
       return { route: "telegram", primaryUrl: url, hints: ["Написать в Telegram HR"] };
     }
+  }
+
+  if (isCandidateResumePost(text)) {
+    return {
+      route: "manual",
+      primaryUrl: all[0] ?? null,
+      hints: ["Пост кандидата (#резюме) — авто-отклик отключён"],
+    };
   }
 
   if (EMAIL_RE.test(text)) {

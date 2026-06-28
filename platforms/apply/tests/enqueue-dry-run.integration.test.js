@@ -1,13 +1,15 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resetDbForTests } from '../lib/db.js';
+import { enqueueFromHarvestPost } from '../lib/enqueue-from-harvest.js';
 
 const root = join(fileURLToPath(import.meta.url), '../..');
 const fixture = join(root, 'tests/fixtures/harvest-post-form.json');
+const resumeFixture = join(root, 'tests/fixtures/harvest-post-resume.json');
 
 describe('enqueue-dry-run CLI boundary', () => {
   let tmpDir;
@@ -35,5 +37,21 @@ describe('enqueue-dry-run CLI boundary', () => {
     expect(parsed.ok).toBe(true);
     expect(parsed.results[0].action).toBe('would_apply');
     expect(parsed.results[0].route).toBe('form');
+  });
+
+  it('skips #резюме posts with email', () => {
+    const post = JSON.parse(readFileSync(resumeFixture, 'utf8'));
+    const result = enqueueFromHarvestPost({ ...post, dryRun: true, skipFitCheck: true });
+    expect(result.results[0].action).toBe('skip_resume_post');
+    expect(result.results[0].route).toBe('manual');
+  });
+
+  it('CLI enqueue-dry-run skips resume fixture', () => {
+    const stdout = execFileSync('node', [join(root, 'cli.js'), 'enqueue-dry-run', resumeFixture], {
+      encoding: 'utf8',
+      env: { ...process.env },
+    });
+    const parsed = JSON.parse(stdout);
+    expect(parsed.results[0].action).toBe('skip_resume_post');
   });
 });

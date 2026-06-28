@@ -4,6 +4,13 @@ import { appendExternalSkip } from './external-feed.js';
 
 const SKIP_ROUTES = new Set(['hh', 'linkedin']);
 const HUMAN_ROUTES = new Set(['manual', 'telegram', 'rvc_bot']);
+const PRESERVE_ACTIONS = new Set([
+  'skip_seen',
+  'skip_resume_post',
+  'skip_fit',
+  'skip_external',
+  'skip_duplicate',
+]);
 
 /**
  * @param {object} input
@@ -58,7 +65,7 @@ export function enqueueFromHarvestPost(input) {
 
   let action = pipelineResult.action;
   if (dryRun && action === 'queued') action = 'would_apply';
-  if (HUMAN_ROUTES.has(route) && action !== 'skip_seen') action = 'needs_human';
+  if (HUMAN_ROUTES.has(route) && !PRESERVE_ACTIONS.has(action)) action = 'needs_human';
 
   return {
     ok: true,

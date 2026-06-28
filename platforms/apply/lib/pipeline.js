@@ -1,4 +1,5 @@
 import { evaluateVacancy } from './fit.js';
+import { isCandidateResumePost } from './resume-post.js';
 import { loadProfile, compileExcludeRegexes } from './profile.js';
 import { getEnabledTelegramChannels, getEnabledPlatforms } from './sources.js';
 import { ingestChannel } from './ingest.js';
@@ -30,6 +31,11 @@ export function processVacancyPost(post, sourceId, profile) {
       : vacancyKey(sourceId, postId));
 
   if (isSeen(key)) return { action: 'skip_seen', key };
+
+  if (isCandidateResumePost(post.rawText ?? post.title ?? '')) {
+    markSeen(key, { fitScore: 0, route: post.route, reason: 'resume_post' });
+    return { action: 'skip_resume_post', key, route: post.route };
+  }
 
   const evaluation = evaluateVacancy(post, profile);
   markSeen(key, {
