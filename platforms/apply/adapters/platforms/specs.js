@@ -1,7 +1,27 @@
 /** Per-site Playwright hints (Phase 3). Generic html-form remains fallback. */
 
+/** RU corporate career sites — shared until a site needs custom selectors. */
+const CORP_RU = {
+  applyButtonSelectors: [
+    'a:has-text("Откликнуться")',
+    'button:has-text("Откликнуться")',
+    'a:has-text("Отклиться")',
+    'button:has-text("Отклиться")',
+    'a:has-text("Apply")',
+    'button:has-text("Apply")',
+  ],
+  waitFor: 'form, [class*="application"], [class*="vacancy"]',
+  submitSelectors: ['button[type="submit"]', 'input[type="submit"]'],
+};
+
 /** @type {Record<string, { applyButtonSelectors?: string[], waitFor?: string, submitSelectors?: string[] }>} */
 export const PLATFORM_SPECS = {
+  rwb_careers: CORP_RU,
+  yandex_careers: CORP_RU,
+  ozon_careers: CORP_RU,
+  avito_careers: CORP_RU,
+  sber_careers: CORP_RU,
+  tbank_careers: CORP_RU,
   vk_careers: {
     applyButtonSelectors: [
       'a:has-text("Откликнуться")',

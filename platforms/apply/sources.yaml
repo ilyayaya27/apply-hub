@@ -20,6 +20,48 @@
   automation_tier: apply_auto
   host: team.vk.company
 
+- id: rwb_careers
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_auto
+  host: career.rwb.ru
+
+- id: yandex_careers
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_auto
+  host: yandex.ru/jobs
+
+- id: ozon_careers
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_auto
+  host: job.ozon.ru
+
+- id: avito_careers
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_auto
+  host: career.avito.com
+
+- id: sber_careers
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_auto
+  host: rabota.sber.ru
+
+- id: tbank_careers
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_auto
+  host: tbank.ru
+
 - id: habr_career
   type: platform
   enabled: true

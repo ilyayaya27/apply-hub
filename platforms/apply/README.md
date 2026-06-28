@@ -33,6 +33,14 @@ node cli.js audit path/to/harvest-latest.json --json
 # починить ошибочно auto-applied #резюме (dry-run по умолчанию)
 node cli.js repair-resume
 node cli.js repair-resume --apply
+
+# career URL в БД с route=manual → form (после добавления хостов в SSOT)
+node cli.js repair-career-routes
+node cli.js repair-career-routes --apply
+
+# fill-only smoke по career-площадкам (см. docs/CAREER_SMOKE.md)
+PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 node cli.js career-smoke 'https://career.rwb.ru/vacancies/25895'
+PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 node cli.js career-smoke --all
 ```
 
 Stdout: `{ "ok": true, "results": [{ "action", "route", "primaryUrl", "key", "hints", "postUrl" }] }`.
@@ -66,6 +74,6 @@ npm test
 
 1. **Dry-run** — классификация + отчёт ✅
 2. **Live queue + guards** — `APPLY_DRY_RUN=0`, `AUTO_APPLY=1`, form/email workers; фильтр `#резюме` ✅
-3. **Career adapters** — Playwright-first (`specs.js` + `career-form.js`) для VK, Habr, Djinni, Getmatch, HireHi, JobRockets ✅
+3. **Career adapters** — Playwright-first (`specs.js` + `career-form.js`): VK, RWB, Yandex, Ozon, Avito, Sber, T-Bank, Habr, Djinni, Getmatch, HireHi, JobRockets ✅
 4. **Метрики** — funnel + by platform в `audit` ✅
 5. **Live form fill** — `PLAYWRIGHT_ENABLED=1`, `FORM_SUBMIT=0` → статус `fill_only`, вакансия остаётся `queued` (метрики не портятся) ✅

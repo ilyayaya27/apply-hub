@@ -2,7 +2,14 @@
 
 /** @type {{ id: string, pattern: RegExp }[]} */
 export const CAREER_PLATFORMS = [
-  { id: 'vk_careers', pattern: /team\.vk\.company/i },
+  { id: 'vk_careers', pattern: /(?:team|internship)\.vk\.company/i },
+  { id: 'rwb_careers', pattern: /career\.rwb\.ru/i },
+  { id: 'yandex_careers', pattern: /yandex\.(?:ru|com)\/jobs/i },
+  { id: 'ozon_careers', pattern: /job\.ozon\.ru/i },
+  { id: 'avito_careers', pattern: /career\.avito\.com/i },
+  { id: 'sber_careers', pattern: /rabota\.sber\.ru/i },
+  { id: 'tbank_careers', pattern: /(?:team\.)?tbank\.ru/i },
+  { id: 'tbank_careers', pattern: /tinkoff\.ru\/career/i },
   { id: 'habr_career', pattern: /career\.habr\.com/i },
   { id: 'djinni', pattern: /djinni\.(?:co|io)/i },
   { id: 'getmatch', pattern: /getmatch\.ru/i },

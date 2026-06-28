@@ -4,6 +4,13 @@ import { resolvePlatformAdapter } from '../adapters/platforms/registry.js';
 
 const CASES = [
   ['vk_careers', 'https://team.vk.company/vacancy/1'],
+  ['rwb_careers', 'https://career.rwb.ru/vacancies/25895'],
+  ['yandex_careers', 'https://yandex.ru/jobs/vacancies/123'],
+  ['ozon_careers', 'https://job.ozon.ru/vacancy/frontend-1'],
+  ['avito_careers', 'https://career.avito.com/vacancy/42'],
+  ['sber_careers', 'https://rabota.sber.ru/search/123'],
+  ['tbank_careers', 'https://team.tbank.ru/vacancy/1'],
+  ['tbank_careers', 'https://tinkoff.ru/career/it/'],
   ['habr_career', 'https://career.habr.com/vacancies/123456'],
   ['djinni', 'https://djinni.co/jobs/12345-frontend/'],
   ['djinni', 'https://djinni.io/jobs/99/'],

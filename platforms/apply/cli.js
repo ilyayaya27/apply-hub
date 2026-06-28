@@ -5,6 +5,10 @@ import { applyNext, getApplyStats } from './lib/apply-dispatcher.js';
 import { buildAuditReport, formatAuditReport } from './lib/audit.js';
 import { notifyHarvestHumanDigest } from './lib/notify-harvest-digest.js';
 import { repairResumePosts } from './lib/repair-resume.js';
+import { repairCareerRoutes } from './lib/repair-career-routes.js';
+import { applyViaForm } from './workers/form-apply.js';
+import { CAREER_SMOKE_PROBES } from './lib/career-smoke-probes.js';
+import { careerPlatformId } from './adapters/platforms/hosts.js';
 
 const cmd = process.argv[2];
 
@@ -61,6 +65,42 @@ if (cmd === 'repair-resume') {
   process.exit(0);
 }
 
+if (cmd === 'repair-career-routes') {
+  const apply = process.argv.includes('--apply');
+  const out = repairCareerRoutes({ dryRun: !apply });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(0);
+}
+
+if (cmd === 'career-smoke') {
+  const runAll = process.argv.includes('--all');
+  const urlArg = process.argv.slice(3).find((a) => !a.startsWith('-'));
+
+  /** @type {{ url: string, platformId?: string }[]} */
+  const targets = runAll
+    ? CAREER_SMOKE_PROBES
+    : urlArg
+      ? [{ url: urlArg, platformId: careerPlatformId(urlArg) ?? undefined }]
+      : [];
+
+  if (targets.length === 0) {
+    console.error('Usage: cli.js career-smoke <vacancy-url> | career-smoke --all');
+    process.exit(1);
+  }
+
+  /** @type {unknown[]} */
+  const results = [];
+  for (const { url, platformId } of targets) {
+    const out = await applyViaForm({ url, primaryUrl: url, title: 'Career smoke', company: 'Smoke' });
+    const row = { url, platformId: platformId ?? careerPlatformId(url), ...out };
+    results.push(row);
+    console.log(JSON.stringify(row, null, 2));
+    if (!out.ok) process.exit(1);
+  }
+  console.log(JSON.stringify({ ok: true, count: results.length, results }, null, 2));
+  process.exit(0);
+}
+
 console.error(`Usage:
   cli.js enqueue-dry-run --stdin | fixture.json
   cli.js enqueue --stdin | fixture.json   (dryRun:false in JSON for live queue)
@@ -68,5 +108,7 @@ console.error(`Usage:
   cli.js audit [harvest-latest.json] [--json]
   cli.js notify-harvest-digest [harvest-latest.json]
   cli.js repair-resume [--apply]
+  cli.js repair-career-routes [--apply]
+  cli.js career-smoke <vacancy-url> | career-smoke --all
 `);
 process.exit(1);

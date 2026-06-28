@@ -96,11 +96,32 @@ describe('classifyApplyRoute', () => {
     expect(r.primaryUrl).toMatch(/team\.vk\.company/);
   });
 
+  it('routes internship.vk.company to form', () => {
+    const r = classifyApplyRoute({
+      text: 'https://internship.vk.company/vacancy/1374',
+      links: ['https://internship.vk.company/vacancy/1374'],
+    });
+    expect(r.route).toBe('form');
+  });
+
   it('routes career.habr.com to form', () => {
     const r = classifyApplyRoute({
       text: 'https://career.habr.com/vacancies/123456',
       links: ['https://career.habr.com/vacancies/123456'],
     });
     expect(r.route).toBe('form');
+  });
+
+  it.each([
+    ['RWB', 'https://career.rwb.ru/vacancies/25895'],
+    ['Yandex', 'https://yandex.ru/jobs/vacancies/123'],
+    ['Ozon', 'https://job.ozon.ru/vacancy/1'],
+    ['Avito', 'https://career.avito.com/vacancy/1'],
+    ['Sber', 'https://rabota.sber.ru/search/1'],
+    ['T-Bank', 'https://team.tbank.ru/vacancy/1'],
+  ])('routes %s careers to form', (_name, url) => {
+    const r = classifyApplyRoute({ text: url, links: [url] });
+    expect(r.route).toBe('form');
+    expect(r.primaryUrl).toBe(url);
   });
 });
