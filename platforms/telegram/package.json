@@ -1,0 +1,26 @@
+{
+  "name": "tg-job-harvest",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "harvest": "tsx src/index.ts",
+    "ping": "tsx src/ping-saved.ts",
+    "login-qr": "tsx src/login-qr.ts",
+    "diagnose": "tsx src/diagnose.ts",
+    "start": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "qrcode-terminal": "^0.12.0",
+    "telegram": "^2.26.22"
+  }
+}

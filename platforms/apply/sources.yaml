@@ -1,0 +1,64 @@
+# Registry площадок apply pipeline (не дублирует channels.json — только metadata + tier).
+# TG-каналы для harvest: platforms/telegram/src/config/channels.json
+
+- id: hh
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: external
+
+- id: linkedin
+  type: platform
+  enabled: true
+  market: global
+  automation_tier: external
+
+- id: vk_careers
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_auto
+  host: team.vk.company
+
+- id: habr_career
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: apply_manual
+  host: career.habr.com
+
+- id: getmatch
+  type: platform
+  enabled: false
+  market: ru
+  automation_tier: apply_manual
+
+- id: djinni
+  type: platform
+  enabled: false
+  market: ru
+  automation_tier: apply_manual
+
+- id: hirehi
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: harvest_only
+
+- id: jobrockets
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: harvest_only
+
+- id: jobleads
+  type: platform
+  enabled: true
+  market: global
+  automation_tier: manual
+
+- id: buildin
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual

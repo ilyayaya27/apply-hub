@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+<form action="/apply" method="post">
+  <input type="text" name="applicant_name" placeholder="Name" />
+  <input type="email" name="email" placeholder="Email" />
+  <input type="text" name="telegram" placeholder="Telegram" />
+  <textarea name="cover_letter" placeholder="Message"></textarea>
+  <input type="file" name="resume" />
+  <button type="submit" data-testid="html-submit">Send</button>
+</form>
+<script>
+  document.querySelector('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.body.dataset.submitted = 'true';
+  });
+</script>
+</body>
+</html>

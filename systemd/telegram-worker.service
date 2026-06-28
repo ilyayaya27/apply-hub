@@ -1,0 +1,14 @@
+[Unit]
+Description=Telegram job harvest + apply pipeline (apply-hub)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documents/apply-hub
+ExecStart=%h/Documents/apply-hub/telegram-worker.sh
+Restart=on-failure
+RestartSec=60
+Environment=HOME=%h
+
+[Install]
+WantedBy=default.target

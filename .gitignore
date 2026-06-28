@@ -95,3 +95,24 @@ platforms/linkedin/cookies/
 platforms/linkedin/logs/
 .linkedin-worker.lock
 .linkedin-orchestrator.lock
+.hh-worker.lock
+.last-resume-lift
+logs/
+
+# Telegram harvest (platforms/telegram)
+.telegram-worker.lock
+platforms/telegram/node_modules/
+platforms/telegram/.env
+platforms/telegram/.telegram_session
+platforms/telegram/.seen_store.json
+platforms/telegram/src/config/channels.json
+platforms/telegram/logs/
+
+# Apply pipeline (platforms/apply) — lib/ is vendored JS, not Python lib/
+!platforms/apply/lib/
+platforms/apply/data/
+platforms/apply/credentials.env
+platforms/apply/node_modules/
+
+# Personal resume PDF (paths in profile.yaml are local)
+resume_ru.pdf

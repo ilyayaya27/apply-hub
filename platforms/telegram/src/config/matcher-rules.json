@@ -1,0 +1,20 @@
+{
+  "includeAny": [
+    "react",
+    "typescript",
+    "reactjs",
+    "react.js",
+    "tsx",
+    "frontend",
+    "front-end",
+    "front end",
+    "фронтенд",
+    "фронтэнд",
+    "веб-разработчик",
+    "web developer",
+    "javascript",
+    "js"
+  ],
+  "levelAny": ["middle", "senior", "мидл", "сеньор", "синьор", "team lead", "teamlead"],
+  "excludeAny": ["php", "java", "junior", "джун", "c#", "csharp", ".net", "dotnet"]
+}

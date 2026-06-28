@@ -1,0 +1,19 @@
+{
+  "name": "@apply-hub/apply",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "nodemailer": "^6.10.0"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.61.1"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

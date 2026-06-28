@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/alice/Documents/hh-applicant-tool
-ExecStartPre=/home/alice/Documents/hh-applicant-tool/lib/wait-for-proxy.sh
-ExecStart=/home/alice/Documents/hh-applicant-tool/hh-worker.sh
+WorkingDirectory=%h/Documents/apply-hub
+ExecStartPre=%h/Documents/apply-hub/lib/wait-for-proxy.sh
+ExecStart=%h/Documents/apply-hub/hh-worker.sh
 Restart=on-failure
 RestartSec=60
 # Groq через openai_proxy_url; HH — напрямую

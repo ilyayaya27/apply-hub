@@ -7,6 +7,16 @@
 
 ---
 
+## 2026-06-28
+
+- 📬 **Telegram → apply pipeline (фазы 1–2):** harvest прогоняет посты через `platforms/apply` (dry-run / live queue), `telegram-worker.sh` + `systemd/telegram-worker.service` (цикл harvest → human digest notify), audit CLI и `scripts/telegram-apply-audit.sh`, JSONL `external-skips` для hh/linkedin из TG-постов, human digest в отчёте и через бота (`NOTIFY_ON=needs_human`).
+- 🔧 **SSOT credentials:** `platforms/apply/credentials.env` (SMTP, `APPLY_DRY_RUN`, `AUTO_APPLY`) подхватывают `telegram-worker.sh` и `telegram-harvest.sh`; apply CLI читает тот же файл.
+- 💬 **Авто-скрининг в чатах hh:** `reply-employers --ai` отвечает на анкеты по SSOT-правилам (`contacts`, `screening_rules`, `reply_chat` в конфиге), дописывает `https://t.me/ilyayaya27`, без `__SKIP__`. Обёртка `./reply-employers.sh` включает AI по умолчанию.
+- 📄 **`spawn-resume-variants`:** клон опубликованного резюме + AI-перефразирование title/skills/описаний опыта (`--dry-run` для проверки).
+- 🔗 Контакты в репо приведены к `@ilyayaya27` / GitHub `ilyayaya27`.
+
+---
+
 ## 2026-06-26
 
 - 🤖 **Скил `hh-clicker` для AI-агентов** (`.claude/skills/hh-clicker/`) + `AGENTS.md`. Теперь, открыв клонированный репозиторий в Claude Code, агент сразу получает пошаговый плейбук: установка, авторизация, AI-письма, рассылка, стратегия, грабли.

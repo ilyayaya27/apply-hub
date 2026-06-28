@@ -1,0 +1,60 @@
+# Apply pipeline (vendored from rvc-applicant)
+
+Маршрутизация откликов по ссылкам из harvest-постов: form, email, hh/linkedin (skip), и т.д.  
+**Фаза 1:** dry-run — реальных откликов нет.  
+**Фаза 2:** `APPLY_DRY_RUN=0` + `AUTO_APPLY=1` — постановка в очередь и `apply-next` после harvest (form/email).
+
+## Зависимости
+
+```bash
+cd platforms/apply
+npm install
+```
+
+Node 22+ (используется `node:sqlite`).
+
+## CLI
+
+```bash
+# из stdin (контракт harvest bridge)
+echo '{"sourceId":"telegram:test","postId":"1","postUrl":"https://t.me/test/1","rawText":"…","links":["https://forms.gle/…"],"dryRun":false,"skipFitCheck":true}' \
+  | node cli.js enqueue --stdin
+
+# обработать очередь (до N записей)
+node cli.js apply-next 5
+
+# fixture для отладки
+node cli.js enqueue-dry-run tests/fixtures/harvest-post-form.json
+```
+
+Stdout: `{ "ok": true, "results": [{ "action", "route", "primaryUrl", "key", "hints", "postUrl" }] }`.
+
+Действия: `would_apply`, `queued`, `skip_external`, `skip_seen`, `skip_fit`, `needs_human`, `error`.
+
+## Переменные окружения
+
+| Переменная | По умолчанию | Описание |
+|------------|--------------|----------|
+| `APPLY_ROOT` | `platforms/apply` | Корень apply (для bridge) |
+| `APPLY_DRY_RUN` | `1` | `0` — боевой режим (фаза 2+) |
+| `AUTO_APPLY` | `0` | Авто-отклик без подтверждения |
+| `COVER_LETTER_PATH` | `../../letter.txt` | SSOT сопроводительного |
+| `JOB_HUB_DB` | `data/vacancies.db` | SQLite dedup |
+
+Профиль: `profile.yaml` (из rvc-applicant).
+
+## Интеграция с Telegram harvest
+
+При `APPLY_ENABLED=1` harvest после каждого матча вызывает `enqueue` (live при `APPLY_DRY_RUN=0`, иначе dry-run). При `AUTO_APPLY=1` и live — после цикла `apply-next`. Секция в отчёте: **Dry-run apply** или **Apply queue (live)**.
+
+## Тесты
+
+```bash
+npm test
+```
+
+## Фазы (roadmap)
+
+1. **Dry-run** — классификация + отчёт.
+2. **Live queue + AUTO_APPLY** — `APPLY_DRY_RUN=0`, `AUTO_APPLY=1`, form/email workers (Playwright/SMTP).
+3. Platform adapters (djinni, getmatch, habr).

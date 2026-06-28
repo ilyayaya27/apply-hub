@@ -207,9 +207,43 @@ AI нужен для двух задач:
 
 ```bash
 .venv/bin/python -m hh_applicant_tool reply-employers --ai
+# или обёртка:
+./reply-employers.sh --dry-run
 ```
 
-`reply-employers` пройдёт по активным чатам и ответит **только там, где последнее сообщение — от работодателя** (он реально что-то написал и ждёт ответа). Молчащим работодателям и непросмотренным откликам бот больше **не** пишет — анкеты (зарплата/график/тестовое) тоже пропускает на ручную обработку.
+`reply-employers` пройдёт по активным чатам и ответит **только там, где последнее сообщение — от работодателя**. На анкеты (ЗП, формат, тестовое, срок выхода) AI отвечает по **правилам скрининга** из конфига и дописывает ссылку на Telegram, если её ещё нет в тексте.
+
+### 6.4. Скрининг и контакты (SSOT для чатов)
+
+Ключи в `~/.config/hh-applicant-tool/config.json` (или `config -e`). Если не заданы — используются дефолты из кода (см. `screening_prompt.py`).
+
+```json
+{
+  "contacts": {
+    "telegram_username": "ilyayaya27",
+    "telegram_url": "https://t.me/ilyayaya27",
+    "github_url": "https://github.com/ilyayaya27"
+  },
+  "screening_rules": {
+    "salary_min_rub": 200000,
+    "salary_comment": "от 200 000 ₽, обсуждаемо при интересном проекте",
+    "work_format": "удалёнка, гибрид, офис — любой формат подходит",
+    "test_task": "короткое тестовое — да; многочасовое бесплатное — нет",
+    "notice_days": 0,
+    "notice_comment": "готов выйти сразу"
+  },
+  "reply_chat": {
+    "system_prompt": "Ты — соискатель на HeadHunter. Отвечай вежливо и кратко.",
+    "message_prompt": "Напиши короткий ответ работодателю. Предложи продолжить в Telegram."
+  }
+}
+```
+
+Варианты резюме для A/B (клон + перефразирование title/skills/описаний):
+
+```bash
+.venv/bin/python -m hh_applicant_tool spawn-resume-variants --resume-id ID --count 3 --dry-run
+```
 
 ---
 
@@ -234,7 +268,7 @@ AI нужен для двух задач:
 ## 9. Типичный ежедневный сценарий
 
 ```bash
-cd /home/alice/Documents/hh-applicant-tool
+cd ~/Documents/apply-hub
 
 # 1. Обновить токен (на всякий случай)
 .venv/bin/python -m hh_applicant_tool refresh-token

@@ -1,0 +1,26 @@
+{
+  "chats": [
+    "@revacancy",
+    "@g_jobbot",
+    "@easy_frontend_jobs",
+    "@frontendnotam",
+    "@javascript_jobs",
+    "@remote_it",
+    "@jobforjunior",
+    "@sparklesjobs",
+    "@zarubezhom_jobs",
+    "@evacuatejobs",
+    "@opento_dev",
+    "@forfrontend",
+    "@jsdevjob",
+    "@vacancy_cs",
+    "@it_vakansii_jobs",
+    "@jtbl_vacancy",
+    "@jsspeak"
+  ],
+  "pitchTemplate": "Добрый день!\n\nЯ фронтенд-разработчик на React и TypeScript.\nРаботал с образовательными платформами и сложными веб-системами.\nУлучшал производительность, архитектуру и процессы разработки.\n\nПортфолио: https://ilya-silkin-portfolio.vercel.app\n\nКонтакты:\n\nTelegram: https://t.me/ilyayaya27\nGitHub: https://github.com/ilyayaya27",
+  "resumeUrl": "https://ilya-silkin-portfolio.vercel.app",
+  "notifyThrottlePerMinute": 12,
+  "dedupMaxEntries": 5000,
+  "seenStorePath": ".seen_store.json"
+}

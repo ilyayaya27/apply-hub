@@ -9,6 +9,13 @@ from typing import TYPE_CHECKING
 from ..ai.base import AIError
 from ..api import ApiError, datatypes
 from ..main import BaseNamespace, BaseOperation
+from ..screening_prompt import (
+    build_reply_ai_query,
+    contacts_from_config,
+    ensure_telegram_footer,
+    resolve_reply_chat_prompts,
+    screening_rules_from_config,
+)
 from ..utils.date import parse_api_datetime
 from ..utils.string import rand_text
 
@@ -113,8 +120,15 @@ class Operation(BaseOperation):
         self.dry_run = args.dry_run
         self.only_invitations = args.only_invitations
 
-        self.message_prompt = args.message_prompt
-        self.cover_letter_ai = (tool.get_cover_letter_ai(args.system_prompt) if args.use_ai else None)
+        system_prompt, message_prompt = resolve_reply_chat_prompts(
+            tool.config, args.system_prompt, args.message_prompt
+        )
+        self.message_prompt = message_prompt
+        self.contacts = contacts_from_config(tool.config)
+        self.screening_rules = screening_rules_from_config(tool.config)
+        self.cover_letter_ai = (
+            tool.get_cover_letter_ai(system_prompt) if args.use_ai else None
+        )
         self.period = args.period
         self._resume_ctx_cache: dict[str, str] = {}
 
@@ -289,32 +303,22 @@ class Operation(BaseOperation):
                     elif self.cover_letter_ai:
                         try:
                             resume_context = self._build_resume_context(resume)
-                            ai_query = (
-                                f"Вакансия: {placeholders['vacancy_name']}\n\n"
-                                f"=== РЕЗЮМЕ (факты обо мне) ===\n"
-                                f"{resume_context}\n\n"
-                                f"=== ИСТОРИЯ ПЕРЕПИСКИ ===\n"
-                                + "\n".join(message_history[-10:])
-                                + f"\n\nИнструкция: {self.message_prompt} "
-                                "Отвечай только на обычные вопросы работодателя, "
-                                "опираясь на факты из резюме выше. Если нужного "
-                                "факта нет — не выдумывай. Не придумывай имя "
-                                "собеседника. ВАЖНО: если работодатель прислал "
-                                "анкету — список из нескольких вопросов, "
-                                "требующих личных решений (зарплата, график, "
-                                "занятость, тестовое, готовность к условиям) — "
-                                "НЕ отвечай, выведи строго одно слово: __SKIP__"
+                            ai_query = build_reply_ai_query(
+                                vacancy_name=placeholders["vacancy_name"],
+                                resume_context=resume_context,
+                                message_history=message_history,
+                                screening_rules=self.screening_rules,
+                                message_prompt=self.message_prompt,
                             )
                             send_message = self.cover_letter_ai.complete(
                                 ai_query
                             )
+                            send_message = ensure_telegram_footer(
+                                send_message,
+                                self.contacts["telegram_url"],
+                                self.contacts.get("telegram_username"),
+                            )
                             logger.debug(f"AI message: {send_message}")
-                            if "__SKIP__" in send_message:
-                                print(
-                                    "📋 Анкета — обработай вручную:",
-                                    vacancy["alternate_url"],
-                                )
-                                continue
                         except AIError as ex:
                             logger.warning(
                                 f"Ошибка OpenAI для чата {nid}: {ex}"

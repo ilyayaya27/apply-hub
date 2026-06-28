@@ -1,6 +1,6 @@
 # LinkedIn Easy Apply + Connect
 
-Часть [hh-applicant-tool](../../): Selenium-бот (fork [wodsuz/EasyApplyJobsBot](https://github.com/wodsuz/EasyApplyJobsBot)).
+Часть [apply-hub](../../): Selenium-бот (fork [wodsuz/EasyApplyJobsBot](https://github.com/wodsuz/EasyApplyJobsBot)).
 
 - **Easy Apply** — отклики через shadow DOM
 - **Connect** — инвайты hiring team с `connectNote`
@@ -11,14 +11,14 @@
 
 ```bash
 OLD=~/Documents/li-easy-apply
-NEW=~/Documents/hh-applicant-tool/platforms/linkedin
+NEW=~/Documents/apply-hub/platforms/linkedin
 
 mkdir -p "$NEW/data" "$NEW/cookies" "$NEW/logs"
 cp -a "$OLD/data/." "$NEW/data/" 2>/dev/null || true
 cp -a "$OLD/cookies/." "$NEW/cookies/" 2>/dev/null || true
 cp "$OLD/config_secrets.py" "$NEW/" 2>/dev/null || cp "$NEW/config_secrets.py.example" "$NEW/config_secrets.py"
 
-cd ~/Documents/hh-applicant-tool
+cd ~/Documents/apply-hub
 pip install -e '.[linkedin]'   # в существующий .venv
 
 systemctl --user disable --now li-worker.service 2>/dev/null || true
@@ -30,7 +30,7 @@ systemctl --user disable --now li-worker.service 2>/dev/null || true
 ## Установка (с нуля)
 
 ```bash
-cd ~/Documents/hh-applicant-tool
+cd ~/Documents/apply-hub
 pip install -e '.[linkedin]'
 
 cp platforms/linkedin/config_secrets.py.example platforms/linkedin/config_secrets.py

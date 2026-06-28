@@ -1,0 +1,9 @@
+{
+  "sourceId": "telegram:test_channel",
+  "postId": "999",
+  "postUrl": "https://t.me/test_channel/999",
+  "rawText": "Frontend dev\nApply: https://forms.gle/rvc-smoke-simple-form\nhr@test.io",
+  "links": ["https://forms.gle/rvc-smoke-simple-form"],
+  "dryRun": true,
+  "skipFitCheck": true
+}

@@ -41,6 +41,22 @@ install_autologin() {
   echo "После перезагрузки: вход в GNOME автоматически → Happ --autostart → прокси 10808/10809"
 }
 
+install_telegram_systemd() {
+  mkdir -p "$HOME/.config/systemd/user"
+  cp "$ROOT/systemd/telegram-worker.service" "$HOME/.config/systemd/user/telegram-worker.service"
+  systemctl --user daemon-reload
+  systemctl --user enable telegram-worker.service
+  echo ""
+  echo "Telegram worker (systemd user) установлен."
+  echo "  Зависимости: cd $ROOT/platforms/telegram && bun install"
+  echo "             cd $ROOT/platforms/apply && npm install"
+  echo "  Сессия:      ./telegram-ping.sh"
+  echo "  Credentials: cp platforms/apply/credentials.env.example platforms/apply/credentials.env"
+  echo "  Запуск:      systemctl --user start telegram-worker"
+  echo "  Лог:         tail -f $ROOT/platforms/telegram/logs/worker.log"
+  echo "  Аудит:       ./scripts/telegram-apply-audit.sh"
+}
+
 install_linkedin_systemd() {
   mkdir -p "$HOME/.config/systemd/user"
   cp "$ROOT/systemd/linkedin-worker.service" "$HOME/.config/systemd/user/linkedin-worker.service"
@@ -84,13 +100,14 @@ EOF
 case "$MODE" in
   systemd) install_systemd ;;
   linkedin) install_linkedin_systemd ;;
-  all) install_systemd; install_linkedin_systemd ;;
+  telegram) install_telegram_systemd ;;
+  all) install_systemd; install_linkedin_systemd; install_telegram_systemd ;;
   cron)    install_cron ;;
   both)    install_systemd; install_cron ;;
   autologin) install_autologin ;;
-  full)    install_systemd; install_linkedin_systemd; install_autologin ;;
+  full) install_systemd; install_linkedin_systemd; install_telegram_systemd; install_autologin ;;
   *)
-    echo "Usage: $0 [systemd|linkedin|all|cron|both|autologin|full]"
+    echo "Usage: $0 [systemd|linkedin|telegram|all|cron|both|autologin|full]"
     exit 1
     ;;
 esac

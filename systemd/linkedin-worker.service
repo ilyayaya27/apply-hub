@@ -1,11 +1,11 @@
 [Unit]
-Description=LinkedIn Easy Apply orchestrator (hh-applicant-tool)
+Description=LinkedIn Easy Apply orchestrator (apply-hub)
 After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/Documents/hh-applicant-tool
-ExecStart=%h/Documents/hh-applicant-tool/linkedin-worker.sh
+WorkingDirectory=%h/Documents/apply-hub
+ExecStart=%h/Documents/apply-hub/linkedin-worker.sh
 Restart=on-failure
 RestartSec=60
 Environment=HOME=%h
