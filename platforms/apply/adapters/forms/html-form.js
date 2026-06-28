@@ -199,12 +199,23 @@ export const applyHtmlForm = async (vacancy, { profile, letter }) => {
       };
     }
 
+    const filledCount = Object.keys(result.filled ?? {}).length;
+    if (!config.formSubmit && filledCount > 0) {
+      return {
+        ok: true,
+        status: 'fill_only',
+        adapter: 'html-form',
+        note: `filled ${filledCount} fields (FORM_SUBMIT=false)`,
+        plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
+      };
+    }
+
     return {
       ok: false,
       status: 'needs_human',
       error: config.formSubmit
         ? 'HTML form: submit не сработал (капча или неизвестная разметка)'
-        : 'FORM_SUBMIT=false — поля заполнены в dry-run, отправка вручную',
+        : 'FORM_SUBMIT=false — форма не заполнена (разметка или капча)',
       adapter: 'html-form',
       plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
     };

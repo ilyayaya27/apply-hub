@@ -29,6 +29,10 @@ node cli.js enqueue-dry-run tests/fixtures/harvest-post-form.json
 # метрики очереди (funnel + by platform)
 node cli.js audit
 node cli.js audit path/to/harvest-latest.json --json
+
+# починить ошибочно auto-applied #резюме (dry-run по умолчанию)
+node cli.js repair-resume
+node cli.js repair-resume --apply
 ```
 
 Stdout: `{ "ok": true, "results": [{ "action", "route", "primaryUrl", "key", "hints", "postUrl" }] }`.
@@ -64,4 +68,4 @@ npm test
 2. **Live queue + guards** — `APPLY_DRY_RUN=0`, `AUTO_APPLY=1`, form/email workers; фильтр `#резюме` ✅
 3. **Career adapters** — Playwright-first (`specs.js` + `career-form.js`) для VK, Habr, Djinni, Getmatch, HireHi, JobRockets ✅
 4. **Метрики** — funnel + by platform в `audit` ✅
-5. **Live form fill** — `PLAYWRIGHT_ENABLED=1`, `FORM_SUBMIT=0`, прогон `apply-next` на real URLs из очереди
+5. **Live form fill** — `PLAYWRIGHT_ENABLED=1`, `FORM_SUBMIT=0` → статус `fill_only`, вакансия остаётся `queued` (метрики не портятся) ✅

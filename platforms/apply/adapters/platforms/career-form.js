@@ -85,12 +85,23 @@ export const applyCareerForm = async (vacancy, ctx, platformId) => {
       };
     }
 
+    const filledCount = Object.keys(result.filled ?? {}).length;
+    if (!config.formSubmit && filledCount > 0) {
+      return {
+        ok: true,
+        status: 'fill_only',
+        adapter: platformId,
+        note: `filled ${filledCount} fields (FORM_SUBMIT=false)`,
+        plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
+      };
+    }
+
     return {
       ok: false,
       status: 'needs_human',
       error: config.formSubmit
         ? `${platformId}: submit не сработал (капча или разметка)`
-        : 'FORM_SUBMIT=false — поля заполнены, отправка вручную',
+        : 'FORM_SUBMIT=false — форма не заполнена (разметка или капча)',
       adapter: platformId,
       plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
     };

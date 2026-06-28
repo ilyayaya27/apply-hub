@@ -60,7 +60,7 @@ export async function dispatchApply(vacancy) {
     return { ok: false, status: 'needs_human' };
   }
 
-  if (result.status === 'dry_run') {
+  if (result.status === 'dry_run' || result.status === 'fill_only') {
     releaseProcessing(vacancy.key, 'queued');
     return result;
   }

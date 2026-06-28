@@ -4,6 +4,7 @@ import { enqueueFromHarvestPost } from './lib/enqueue-from-harvest.js';
 import { applyNext, getApplyStats } from './lib/apply-dispatcher.js';
 import { buildAuditReport, formatAuditReport } from './lib/audit.js';
 import { notifyHarvestHumanDigest } from './lib/notify-harvest-digest.js';
+import { repairResumePosts } from './lib/repair-resume.js';
 
 const cmd = process.argv[2];
 
@@ -53,11 +54,19 @@ if (cmd === 'notify-harvest-digest') {
   process.exit(out.ok ? 0 : 1);
 }
 
+if (cmd === 'repair-resume') {
+  const apply = process.argv.includes('--apply');
+  const out = repairResumePosts({ dryRun: !apply });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(0);
+}
+
 console.error(`Usage:
   cli.js enqueue-dry-run --stdin | fixture.json
   cli.js enqueue --stdin | fixture.json   (dryRun:false in JSON for live queue)
   cli.js apply-next [n]
   cli.js audit [harvest-latest.json] [--json]
   cli.js notify-harvest-digest [harvest-latest.json]
+  cli.js repair-resume [--apply]
 `);
 process.exit(1);
