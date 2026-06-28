@@ -5,6 +5,7 @@ import { getDb } from './db.js';
 import { getApplyStats } from './apply-dispatcher.js';
 import { buildHumanDigestText } from './human-digest.js';
 import { getExternalFeedPath } from './external-feed.js';
+import { getFunnelMetrics, getPlatformMetrics } from './metrics.js';
 
 const defaultHarvestReport = join(ROOT, '..', 'telegram', 'logs', 'harvest-latest.json');
 
@@ -52,6 +53,8 @@ export function buildAuditReport(opts = {}) {
     queue: byStatus,
     routes: byRoute,
     applyStats: getApplyStats(),
+    funnel: getFunnelMetrics(db),
+    byPlatform: getPlatformMetrics(db),
     harvestSummary: harvest?.summary ?? null,
     humanDigest,
     dryRun: config.dryRun,
@@ -74,6 +77,28 @@ export function formatAuditReport(report) {
     '',
     `Applied today: ${report.applyStats.appliedToday ?? 0} | queue left: ${report.applyStats.queueLeft ?? 0}`,
   ];
+
+  if (report.funnel) {
+    const f = report.funnel;
+    lines.push(
+      '',
+      'Funnel:',
+      `  total=${f.total} queued=${f.queued} applied=${f.applied} needs_human=${f.needsHuman} failed=${f.failed}`,
+      `  conversion=${f.conversionRate}%`,
+    );
+  }
+
+  if (report.byPlatform && Object.keys(report.byPlatform).length) {
+    lines.push('', 'By career platform (status):');
+    for (const [platform, counts] of Object.entries(report.byPlatform).sort(
+      ([a], [b]) => a.localeCompare(b),
+    )) {
+      const parts = Object.entries(counts)
+        .map(([st, n]) => `${st}:${n}`)
+        .join(' ');
+      lines.push(`  ${platform}: ${parts}`);
+    }
+  }
 
   if (report.harvestSummary) {
     const s = report.harvestSummary;

@@ -36,7 +36,7 @@ if (cmd === 'apply-next') {
 }
 
 if (cmd === 'audit') {
-  const harvestPath = process.argv[3];
+  const harvestPath = process.argv.slice(3).find((a) => !a.startsWith('-'));
   const report = buildAuditReport(harvestPath ? { harvestPath } : {});
   if (process.argv.includes('--json')) {
     console.log(JSON.stringify(report, null, 2));
