@@ -29,6 +29,21 @@ nano letter.txt
 
 Детали по каждому шагу — в разделах ниже. **Обязательно прочитай §15 «На что обращать внимание»** — там всё, на чём легко обжечься.
 
+### LinkedIn Easy Apply (тот же репозиторий)
+
+Код: `platforms/linkedin/`. Полная инструкция: **`platforms/linkedin/README.md`**.
+
+```bash
+pip install -e '.[linkedin]'          # Selenium и т.д. в тот же .venv
+./scripts/migrate-linkedin-from-li-easy-apply.sh   # если был ~/Documents/li-easy-apply
+./linkedin-login-once.sh                # cookies / 2FA
+# В config.py: dryRun = True для теста
+./linkedin-orchestrator.sh              # один цикл
+./install-automation.sh linkedin        # systemd linkedin-worker
+```
+
+Старый `li-worker` из отдельного репо отключи: `systemctl --user disable --now li-worker.service`.
+
 ---
 
 ## 1. Требования

@@ -1,0 +1,13 @@
+[Unit]
+Description=Happ — автоподключение прокси при входе в систему
+After=network-online.target graphical-session.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/happ/bin/Happ --autostart
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=default.target

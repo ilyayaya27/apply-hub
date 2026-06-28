@@ -87,3 +87,11 @@ CLAUDE.md
 .codex/
 uv.lock
 poetry.lock
+
+# LinkedIn bot (platforms/linkedin) — локальные данные и секреты
+platforms/linkedin/config_secrets.py
+platforms/linkedin/data/
+platforms/linkedin/cookies/
+platforms/linkedin/logs/
+.linkedin-worker.lock
+.linkedin-orchestrator.lock

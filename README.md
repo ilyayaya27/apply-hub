@@ -1,5 +1,8 @@
 # HH Applicant Tool
 
+> [!NOTE]
+> **Форк «хаб откликов»:** hh.ru + LinkedIn Easy Apply в одном репо — см. **[HUB.md](./HUB.md)**, LinkedIn: **[platforms/linkedin/README.md](./platforms/linkedin/README.md)**.
+
 > [!TIP]
 > 🚀 **Упрощённая инструкция** по быстрому запуску и нюансам откликов — в файле **[GUIDE.md](./GUIDE.md)**. Если только начинаешь — начни с неё.
 

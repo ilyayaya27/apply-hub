@@ -172,7 +172,11 @@ class HHApplicantTool(MegaTool):
 
     def _get_openai_proxies(self) -> dict[str, str]:
         openai_config = self.config.get("openai", {})
-        proxy_url = self.openai_proxy_url or openai_config.get("proxy_url")
+        proxy_url = (
+            self.openai_proxy_url
+            or openai_config.get("proxy_url")
+            or self.config.get("openai_proxy_url")
+        )
         if proxy_url:
             return self._proxy_url_to_dict(proxy_url)
         return self._get_proxies()

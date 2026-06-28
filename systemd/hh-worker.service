@@ -1,0 +1,17 @@
+[Unit]
+Description=HH Applicant Tool — отклики, ответы, автоподнятие (8–21)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/alice/Documents/hh-applicant-tool
+ExecStartPre=/home/alice/Documents/hh-applicant-tool/lib/wait-for-proxy.sh
+ExecStart=/home/alice/Documents/hh-applicant-tool/hh-worker.sh
+Restart=on-failure
+RestartSec=60
+# Groq через openai_proxy_url; HH — напрямую
+Environment=NO_PROXY=localhost,127.0.0.1
+
+[Install]
+WantedBy=default.target
