@@ -99,10 +99,10 @@ export const uploadHtmlFormResume = async (page, resumePath) => {
 /**
  * @param {import('playwright').Page} page
  * @param {{ fields: { name: string, type: string, tag: string, value: string }[] }} plan
- * @param {{ submit?: boolean, resumePath?: string }} opts
+ * @param {{ submit?: boolean, resumePath?: string, submitSelectors?: string[] }} opts
  */
 export const runHtmlFormFlow = async (page, plan, opts = {}) => {
-  const { submit = false, resumePath = '' } = opts;
+  const { submit = false, resumePath = '', submitSelectors } = opts;
   await page.waitForSelector('form', { timeout: 15_000 });
 
   const { filled } = await fillHtmlFormFromPlan(page, plan);
@@ -111,11 +111,11 @@ export const runHtmlFormFlow = async (page, plan, opts = {}) => {
 
   let submitted = false;
   if (submit) {
-    const submitBtn = page
-      .locator(
-        'button[type="submit"], input[type="submit"], [data-testid="html-submit"]',
-      )
-      .first();
+    const selector =
+      submitSelectors?.length
+        ? submitSelectors.join(', ')
+        : 'button[type="submit"], input[type="submit"], [data-testid="html-submit"]';
+    const submitBtn = page.locator(selector).first();
     if ((await submitBtn.count()) > 0) {
       await submitBtn.click({ timeout: 5000 }).catch(() => {});
       await page.waitForTimeout(500);
