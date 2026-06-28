@@ -16,8 +16,10 @@ const FORM_HINTS = [
   /jobs\./i,
 ];
 
-/** Career sites → form route (Playwright); dedicated adapters in adapters/platforms/ */
-const CAREER_FORM_HOSTS = [/team\.vk\.company/i, /career\.habr\.com/i];
+import { careerHostPatterns } from '../adapters/platforms/hosts.js';
+
+/** Career sites → form route (Playwright); adapters in adapters/platforms/ */
+const CAREER_FORM_HOSTS = careerHostPatterns();
 
 const withScheme = (raw) => (raw.startsWith('http') ? raw : `https://${raw}`);
 

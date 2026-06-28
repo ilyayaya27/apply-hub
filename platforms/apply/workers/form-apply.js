@@ -2,7 +2,7 @@ import { detectFormAdapterId } from '../adapters/forms/detect.js';
 import { resolveApplyUrl } from '../lib/fixture-url.js';
 import { applyGoogleForm } from '../adapters/forms/google-forms.js';
 import { applyHtmlForm } from '../adapters/forms/html-form.js';
-import { isVkCareersUrl, applyVkCareers } from '../adapters/platforms/vk-careers.js';
+import { resolvePlatformAdapter } from '../adapters/platforms/registry.js';
 import { getMarketAssets, loadProfile } from '../lib/profile.js';
 import { loadCoverLetter } from '../lib/letter.js';
 
@@ -18,8 +18,9 @@ export const applyViaForm = async (vacancy, ctx = {}) => {
   const profile = ctx.profile ?? loadProfile();
   const letter = ctx.letter ?? loadCoverLetter();
 
-  if (isVkCareersUrl(url)) {
-    return applyVkCareers(vacancyResolved, { profile, letter });
+  const platform = resolvePlatformAdapter(url);
+  if (platform) {
+    return platform.apply(vacancyResolved, { profile, letter });
   }
 
   const adapter = detectFormAdapterId(url);

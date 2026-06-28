@@ -1,8 +1,8 @@
 import { applyHtmlForm } from '../forms/html-form.js';
+import { careerPlatformId } from './hosts.js';
 
 /** @param {string | null | undefined} url */
-export const isVkCareersUrl = (url) =>
-  typeof url === 'string' && /team\.vk\.company/i.test(url.trim());
+export const isVkCareersUrl = (url) => careerPlatformId(url) === 'vk_careers';
 
 /**
  * VK Careers pilot — generic Playwright html-form until dedicated selectors land.

@@ -24,32 +24,36 @@
   type: platform
   enabled: true
   market: ru
-  automation_tier: apply_manual
+  automation_tier: apply_auto
   host: career.habr.com
 
 - id: getmatch
   type: platform
-  enabled: false
+  enabled: true
   market: ru
-  automation_tier: apply_manual
+  automation_tier: apply_auto
+  host: getmatch.ru
 
 - id: djinni
   type: platform
-  enabled: false
+  enabled: true
   market: ru
-  automation_tier: apply_manual
+  automation_tier: apply_auto
+  host: djinni.co
 
 - id: hirehi
   type: platform
   enabled: true
   market: ru
-  automation_tier: harvest_only
+  automation_tier: apply_auto
+  host: hirehi.ru
 
 - id: jobrockets
   type: platform
   enabled: true
   market: ru
-  automation_tier: harvest_only
+  automation_tier: apply_auto
+  host: jobrockets.ru
 
 - id: jobleads
   type: platform

@@ -53,12 +53,29 @@ describe('classifyApplyRoute', () => {
     expect(r.primaryUrl).toMatch(/@/);
   });
 
-  it('falls back to manual for djinni', () => {
+  it('routes djinni to form', () => {
     const r = classifyApplyRoute({
       text: 'https://djinni.co/jobs/12345-frontend/',
       links: ['https://djinni.co/jobs/12345-frontend/'],
     });
-    expect(r.route).toBe('manual');
+    expect(r.route).toBe('form');
+    expect(r.primaryUrl).toMatch(/djinni\.co/);
+  });
+
+  it('routes getmatch to form', () => {
+    const r = classifyApplyRoute({
+      text: 'https://getmatch.ru/vacancies/42',
+      links: ['https://getmatch.ru/vacancies/42'],
+    });
+    expect(r.route).toBe('form');
+  });
+
+  it('routes hirehi to form', () => {
+    const r = classifyApplyRoute({
+      text: 'https://hirehi.ru/v/1',
+      links: ['https://hirehi.ru/v/1'],
+    });
+    expect(r.route).toBe('form');
   });
 
   it('routes VK Careers to form', () => {
