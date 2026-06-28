@@ -22,8 +22,8 @@ Stdout: JSON `{ ok, status, adapter, note, plan?, error? }`.
 | # | platform_id | probe URL | fill-only | submit | notes |
 |---|-------------|-----------|-----------|--------|-------|
 | 1 | `vk_careers` | https://internship.vk.company/vacancy/1374 | ✅ | — | smoke 2026-06 |
-| 2 | `rwb_careers` | https://career.rwb.ru/vacancies/25895 | ⏳ | — | из очереди TG |
-| 3 | `yandex_careers` | _TBD — подставить живую вакансию /jobs_ | ⬜ | — | |
+| 2 | `rwb_careers` | https://career.rwb.ru/vacancies/25895 | ✅ | — | 6 полей + resume; phone пустой — проверить профиль |
+| 3 | `yandex_careers` | https://yandex.ru/jobs/vacancies/razrabotchik-frontenda-v-direkt-45243 | ❌ | — | `no_form` — нужны селекторы «Откликнуться» / модалка |
 | 4 | `ozon_careers` | _TBD job.ozon.ru_ | ⬜ | — | антибот |
 | 5 | `avito_careers` | _TBD career.avito.com_ | ⬜ | — | |
 | 6 | `sber_careers` | _TBD rabota.sber.ru_ | ⬜ | — | |
