@@ -9,6 +9,15 @@ export async function applyViaEmail(vacancy) {
     return { ok: false, status: 'failed', error: 'invalid_email' };
   }
 
+  if (config.dryRun) {
+    return {
+      ok: false,
+      status: 'dry_run',
+      note: `dry-run: would email ${to}`,
+      draft: buildEmailDraft(vacancy),
+    };
+  }
+
   if (!config.smtpHost || !config.smtpUser || !config.applyEmail) {
     return {
       ok: false,

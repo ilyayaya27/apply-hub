@@ -3,4 +3,4 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-exec "$ROOT/apply-vacancies.sh" --dry-run -vv "$@"
+exec "$ROOT/apply-vacancies.sh" --dry-run "$@"

@@ -60,6 +60,11 @@ export async function dispatchApply(vacancy) {
     return { ok: false, status: 'needs_human' };
   }
 
+  if (result.status === 'dry_run') {
+    releaseProcessing(vacancy.key, 'queued');
+    return result;
+  }
+
   if (result.ok) {
     markApplied(vacancy.key, { method: vacancy.route, note: result.note });
     await sendTelegramNotify(
