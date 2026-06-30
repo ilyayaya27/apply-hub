@@ -2,6 +2,8 @@
 export const FIELD_HINTS = [
   // telegram before name — bare /name/i matches the "name" inside "username"
   { key: 'telegram', patterns: [/telegram/i, /телеграм/i, /@/i, /\btg\b/i, /telegram.*username/i, /^username$/i] },
+  { key: 'lastName', patterns: [/фамил/i, /surname/i, /last.?name/i] },
+  { key: 'firstName', patterns: [/^имя$/i, /first.?name/i, /given.?name/i] },
   { key: 'name', patterns: [/\bname\b/i, /фio/i, /ф\.?\s*и\.?\s*о/i, /имя/i, /full.?name/i, /ваше имя/i] },
   { key: 'email', patterns: [/email/i, /e-mail/i, /почта/i, /\bmail\b/i] },
   { key: 'phone', patterns: [/phone/i, /tel/i, /телефон/i, /mobile/i] },
@@ -29,7 +31,18 @@ export const matchFieldKey = (label) => {
  * @param {string} key
  */
 export const valueForFieldKey = (profile, letter, key) => {
+  const parts = String(profile.name ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const firstName = parts[0] ?? '';
+  const lastName = parts.slice(1).join(' ') || firstName;
+
   switch (key) {
+    case 'firstName':
+      return firstName;
+    case 'lastName':
+      return lastName;
     case 'name':
       return profile.name ?? '';
     case 'email':

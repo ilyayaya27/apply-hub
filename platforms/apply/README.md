@@ -1,14 +1,23 @@
 # Apply pipeline (vendored from rvc-applicant)
 
-Маршрутизация откликов по ссылкам из harvest-постов: form, email, hh/linkedin (skip), и т.д.  
+Маршрутизация откликов по ссылкам из harvest-постов: form, email, hh/linkedin (skip), career-сайты big tech и т.д.
+
+## Документация
+
+| Документ | Зачем |
+|----------|--------|
+| **[docs/CAREER_PLATFORMS.md](docs/CAREER_PLATFORMS.md)** | Полная схема для агентов: harvest → queue → Playwright, SSOT, как добавить площадку |
+| **[docs/CAREER_SMOKE.md](docs/CAREER_SMOKE.md)** | Таблица smoke fill-only по каждой career-площадке |
+
 **Фаза 1:** dry-run — реальных откликов нет.  
-**Фаза 2:** `APPLY_DRY_RUN=0` + `AUTO_APPLY=1` — постановка в очередь и `apply-next` после harvest (form/email).
+**Фаза 2:** `APPLY_DRY_RUN=0` + `AUTO_APPLY=1` — постановка в очередь и `apply-next` после harvest.
 
 ## Зависимости
 
 ```bash
 cd platforms/apply
 npm install
+npx playwright install chromium   # для career-smoke / form fill
 ```
 
 Node 22+ (используется `node:sqlite`).
@@ -39,13 +48,22 @@ node cli.js repair-career-routes
 node cli.js repair-career-routes --apply
 
 # fill-only smoke по career-площадкам (см. docs/CAREER_SMOKE.md)
-PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 node cli.js career-smoke 'https://career.rwb.ru/vacancies/25895'
-PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 node cli.js career-smoke --all
+PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 node cli.js career-smoke 'https://career.ozon.ru/vacancy/ml-inzhener-133392771'
+PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 PLAYWRIGHT_HEADLESS=0 node cli.js career-smoke --all
 ```
 
-Stdout: `{ "ok": true, "results": [{ "action", "route", "primaryUrl", "key", "hints", "postUrl" }] }`.
+Stdout enqueue: `{ "ok": true, "results": [{ "action", "route", "primaryUrl", ... }] }`.
 
 Действия: `would_apply`, `queued`, `skip_external`, `skip_seen`, `skip_fit`, `skip_resume_post`, `needs_human`, `error`.
+
+## Career SSOT (кратко)
+
+- **Хост → platform_id:** `adapters/platforms/hosts.js`
+- **Селекторы Playwright:** `adapters/platforms/specs.js`
+- **Apply flow:** `adapters/platforms/career-form.js` + `adapters/forms/html-form.js`
+- **Ozon IT:** только `career.ozon.ru` (не `job.ozon.ru`)
+
+Подробности — [docs/CAREER_PLATFORMS.md](docs/CAREER_PLATFORMS.md).
 
 ## Переменные окружения
 
@@ -57,6 +75,7 @@ Stdout: `{ "ok": true, "results": [{ "action", "route", "primaryUrl", "key", "hi
 | `COVER_LETTER_PATH` | `../../letter.txt` | SSOT сопроводительного |
 | `FORM_SUBMIT` | `0` | `1` — реальная отправка форм (Playwright) |
 | `PLAYWRIGHT_ENABLED` | `0` | `1` — заполнение career/form через браузер |
+| `PLAYWRIGHT_HEADLESS` | `1` | `0` — видимый браузер (antibot/Ozon) |
 
 Профиль: `profile.yaml` (из rvc-applicant).
 
@@ -74,6 +93,6 @@ npm test
 
 1. **Dry-run** — классификация + отчёт ✅
 2. **Live queue + guards** — `APPLY_DRY_RUN=0`, `AUTO_APPLY=1`, form/email workers; фильтр `#резюме` ✅
-3. **Career adapters** — Playwright-first (`specs.js` + `career-form.js`): VK, RWB, Yandex, Ozon, Avito, Sber, T-Bank, Habr, Djinni, Getmatch, HireHi, JobRockets ✅
+3. **Career adapters** — Playwright-first (`specs.js` + `career-form.js`): VK, RWB, Yandex, Ozon, … ✅ (Yandex/Ozon — доработка smoke)
 4. **Метрики** — funnel + by platform в `audit` ✅
-5. **Live form fill** — `PLAYWRIGHT_ENABLED=1`, `FORM_SUBMIT=0` → статус `fill_only`, вакансия остаётся `queued` (метрики не портятся) ✅
+5. **Live form fill** — `PLAYWRIGHT_ENABLED=1`, `FORM_SUBMIT=0` → статус `fill_only`, вакансия остаётся `queued` ✅

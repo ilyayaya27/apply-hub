@@ -1,1035 +1,345 @@
-# HH Applicant Tool
+# apply-hub
 
-> [!NOTE]
-> **Форк «хаб откликов»:** hh.ru + LinkedIn + Telegram — см. **[HUB.md](./HUB.md)**.
-
-> [!TIP]
-> 🚀 **Упрощённая инструкция** по быстрому запуску и нюансам откликов — в файле **[GUIDE.md](./GUIDE.md)**. Если только начинаешь — начни с неё.
-
-> [!NOTE]
-> Ищу почасовую или проектную [@feedback_s3rgeym_bot](https://t.me/feedback_s3rgeym_bot) (Python, Vue.js, DevOps). Не пишите туда с вопросами по утилите. Для них есть канал!!!
-
-> [!IMPORTANT]
-> Прежде чем задавать долбоебские вопросы, прочитай весь текст ниже.
-
-> [!WARNING]
-> Мой проект полностью бесплатен для личного пользования, для коммерческого использования ОН ЗАПРЕЩЕН, однако находятся отдельные ублюдки, которые используют МОЮ РАЗРАБОТКУ в коммерческих целях. Просто первые строки из гугла, все эти хуИИ помощники для рассылки откликов. Как спалились? - Мой скрипт аналоговнентный и как только я в нем реализовал мультиакки, так сразу они появились у этих козлов, сделал автоматическое решение тестов, у них они тоже появились. Эти гандоны или пиздят мой код частично, либо тупо утилиту встроили в свои говносервисы. Я их проклинаю в веках и желаю им всего плохого. Они жулики и воры! Если где увидите где подобных, в отзывах каких, то кидайте ссылку на этот скрипт и пишите, что эти мошенники продают ХАЛЯВУ.
-
-![Publish to PyPI](https://github.com/s3rgeym/hh-applicant-tool/actions/workflows/publish.yml/badge.svg)
-[![PyPi Version](https://img.shields.io/pypi/v/hh-applicant-tool)]()
-[![Python Versions](https://img.shields.io/pypi/pyversions/hh-applicant-tool.svg)]()
-[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/s3rgeym/hh-applicant-tool)]()
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/hh-applicant-tool)]()
-[![Total Downloads](https://static.pepy.tech/badge/hh-applicant-tool)]()
-
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/29d91490-2c83-4e3f-a573-c7a6182a4044" width="500">
-</div>
-
-### ☕ Поддержать проект
-
-[![Donate BTC](https://img.shields.io/badge/Donate-BTC-orange?style=for-the-badge&logo=bitcoin&logoColor=white)](bitcoin:BC1QWQXZX6D5Q0J5QVGH2VYXTFXX9Y6EPPGCW3REHS?label=%D0%94%D0%BB%D1%8F%20%D0%BF%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B9)
-
-**BTC Address:** `BC1QWQXZX6D5Q0J5QVGH2VYXTFXX9Y6EPPGCW3REHS`
+Автоматизированный хаб для откликов на вакансии. Одновременно работает на нескольких платформах: HH.ru, LinkedIn, Telegram-каналы, корпоративные career-сайты и rvc.global.
 
 ---
 
-## ✨ Ключевые особенности
+## Архитектура
 
-- 💸 **Полностью бесплатно.** В то время как сервисы в интернете или Telegram с аналогичным функционалом просят за свои услуги от 5.000 до 12.000 рублей в месяц.
-
-- ✉️ **Генерация сопроводительных писем** с помощью шаблонов и **ChatGPT**. На абсолютное большинство вакансий сегодня не откликнуться без сопроводительного письма. Их безмозглые куски пиздятины, конечно, не читает, но легенды гласят, что за красивые сопроводительные могут сразу директором взять как талантливых детей депутатов и чиновников, которых в элитных школах учат мастерству написания оных.
-
-- 🧩 **Выполнение тестов при отклике.** С выбором случайных ответов либо через недо-ИИ. Данные тесты стали использовать для отсева ботов после массового увлечения автоматическими рассылками на фоне роста безработицы, падения количества вакансий и прочих гео-политических побед, которые совпали с внедрением нейро-глючных **ATS**, рассылающих отказы как из пулемета, а раз у тебя одни отказы, то нужно почаще откликаться, чтоб хоть куда-то пригласили. Про ботов: дело в том, что в **API** нет методов для решения тестов, а все боты для откликов работали именно через него.
-
-- 📧 **Отправка писем при отклике.** Вы можете настроить дополнительную отправку письма на контактный email работодателя, указанный в контактах, либо если тот указан на его сайте.
-
-- 💬 **Рассылка сообщений по чатам работодателей.** Помогает не затеряться на фоне огромного количества откликов от других соискателей (в 2024 их было по 300 штук на вакансию джуна, сейчас по 3000).
-
-- 🔒 **Безопасность персональных данных.** Ваши email, телефон, пароль и другие личные данные никуда не передаются в отличие от сторонних сервисов. В этом можно убедиться, изучив [открытый исходный код](https://github.com/s3rgeym/hh-applicant-tool/tree/main/src/hh_applicant_tool). Владельцы сторонних сервисов никогда вам не покажут исходники. Они знают о вас все и эти данные спокойно продадут каким-нибудь жуликам, либо те утекут в результате взлома.
-
-- 💾 **Сохранение контактов работодателей и прочей информации.** Контакты работодателей и информация о них и их вакансиях сохраняются в базе данных на вашем устройстве, что позволяет производить быстрый поиск нужной информации, в отличие от сайта, при минимальном опыте с SQL (язык запросов, придуманный в свое время для домохозяек).
-
-- 🛡️ **Гарантия от блокировок.** Утилита выполняет запросы с вашего устройства, имитируя обычного пользователя. Сервисы рассылают запросы для сотен аккаунтов с одного сервера, что повышает вероятность блокировки вашего аккаунта до 100%.
-
-- 😎 **Простота в использовании.** С утилитой разберется любой начинающий пользователь компьютера... даже женщина.
-
-- 👯 **Поддержка работы с несколькими аккаунтами и резюме.** Утилита благодаря профилям может работать с неограниченным количеством аккаунтов и резюме. Когда у вас кончаются вакансии для откликов, вы просто дублируете резюме и начинаете на все откликаться по второму кругу, повышая свои шансы быть замеченным.
-
-- 🖥️ **Полноценный CLI и работа на серверах.** Утилита имеет чистый консольный интерфейс. Несмотря на то, что для обхода защиты при авторизации используется браузер, он работает по умолчанию в фоновом (headless) режиме. Для `hh-applicant-tool` не нужна видеокарта или графическая оболочка (X-сервер), что позволяет авторизоваться даже с сервера или из докер-контейнера. Капча также выводится прямо в терминал при использовании флагов `--kitty`/`--sixel`.
-
-- 🚀 **Скриптинг.** Вы можете использовать утилиту из своих Python-скриптов.
-
-- 🤖 **Борьба с ATS и HR.** россиянские говнокомпании (других тут в принципе нет) массово внедрили ATS, которые отклоняют отклик в течение 5 секунд (мой рекорд). Отказ может прийти даже из-за отсутствия одного слова в резюме. Виной всему аналоговнетные отечественные нейрозаменители, возможности которых не дотягивают даже до 0.001% от того, что умела первая версия **ChatGPT**. Доверия к ним не добавляет и то, что они были обучены на наших "любимых" психуйлогинях с их оригинальными "логарифмами" отбора. Не говоря уже о тупопездом фильтре, отсеивающем по знаку зодиака на следующем этапе (раньше в интерфейсе этого сайта для тупоЁблых овчаров даже знак зодиака показывался). Это обесценивает ваши усилия на написание сопроводительных писем (по совету ебанашек с ютуба) и чтение бесконечных портянок бреда, сгенерированных нейронкой. Если тупые ичары решили себя не утруждать чтением резюме (они сейчас и сами перестали писать), то и вам незачем читать высеры этих психологинь (психология — псевдонаука, как физиогномика или астрология, столь любимые свинками). Утилита избавляет вас от этой рутины, превращающей поиск работы в полноценную работу. Сейчас доля отказов составляет 98-99%, включая "молчунов" и прочих долбоебов (это скрытые отказы в CRM/ATS, чтобы не портить овчар-бренд), и единственный способ увеличить шансы просто попасть на собеседование — это автоматическая рассылка откликов на все подходящие вакансии. У большинства телефоны с двумя симками, а значит, каждый может разослать до 400 откликов в сутки, а если нарегать акков на родню — еще больше! Из-за нейродурки сейчас спамят откликами все, поэтому на вакансию приходится в среднем 400-1000 откликов (больше всего откликов не на фронтенд, а на Golang-разработчиков, так как это очень простой язык — Pascal 21-го века). Да, подобный функционал с недавних пор предоставляет сам красный сайт, но ограничивается он максимум пятью откликами, и мало того, дал хрюшам кнопку, чтобы скипать такие отклики (поводили шершавым по губам дуракам, заплатившим за это). Данная утилита никак не палится и эмулирует в своей работе приложение под Android и браузер, поэтому не подпадает под подобные фильтры.
-
-- 🧠 **AI-фильтрация вакансий.** Можно автоматически фильтровать вакансии через AI, чтобы откликаться только на подходящие. Два режима: `heavy` — полный анализ резюме и вакансии (должность, навыки, опыт работы, задачи), `light` — быстрая оценка по названию и ключевым навыкам.
-
-- 🔒 **Автоматическое решение капчи.** Утилита поддерживает автоматическое распознавание капчи при откликах на вакансии через Vision модель.
-
-- 📊 **Сохранение пропущенных вакансий.** Все вакансии, отклонённые фильтром или AI, сохраняются в базу данных с указанием причины. Это позволяет анализировать, почему вакансии были пропущены.
-
-- 🖼️ **Наличие UI.** Для тех, кому сложно работать с консолью/терминалом.
-
-> Наглядно о раб_отном рынке в ресурсной федерации
-
-<div align="center">
-  <img width="400" alt="image" src="https://github.com/user-attachments/assets/3a734716-172d-48c6-9689-aded6a8bc7bd" />
-  <img width="400" alt="image" src="https://github.com/user-attachments/assets/36b8a399-2d8a-4ad6-9d58-fa4465856cd1" />
-</div>
+```
+apply-hub/
+├── src/hh_applicant_tool/      # Python: HH.ru авто-отклики + уведомления
+├── platforms/
+│   ├── apply/                  # Node.js: career-сайты, rvc.global, email
+│   ├── rvc/                    # Node.js: Telegram-каналы → scoring → форм-отклики
+│   └── telegram/               # GramJS Telegram сессия (shared)
+├── hh-worker.sh                # Shell-обёртка для hh-worker.service
+└── systemd/                    # Шаблоны systemd unit-файлов
+```
 
 ---
 
-## Содержание
+## Платформы и сервисы
 
-- [HH Applicant Tool](#hh-applicant-tool)
-  - [☕ Поддержать проект](#-поддержать-проект)
-  - [✨ Ключевые особенности](#-ключевые-особенности)
-  - [Содержание](#содержание)
-  - [Описание](#описание)
-  - [Предыстория](#предыстория)
-  - [Запуск через Docker](#запуск-через-docker)
-  - [Стандартная установка](#стандартная-установка)
-    - [Установка утилиты](#установка-утилиты)
-    - [Дополнительные зависимости](#дополнительные-зависимости)
-  - [Авторизация](#авторизация)
-  - [Описание команд](#описание-команд)
-  - [Использование AI](#использование-ai)
-    - [OpenAI/ChatGPT](#openaichatgpt)
-  - [Шаблоны сообщений](#шаблоны-сообщений)
-  - [Данные приложения](#данные-приложения)
-    - [Конфигурационный файл](#конфигурационный-файл)
-    - [Логи](#логи)
-    - [База данных](#база-данных)
-    - [cookies.txt](#cookiestxt)
-  - [Отправка писем при отклике](#отправка-писем-при-отклике)
-  - [Использование в скриптах](#использование-в-скриптах)
-  - [Дополнительные настройки](#дополнительные-настройки)
-  - [Связанные проекты](#связанные-проекты)
-  - [Лицензионное соглашение (Limited Non-Commercial License)](#лицензионное-соглашение-limited-non-commercial-license)
+### 1. HH.ru — `hh-worker.service`
+
+**Что делает:** Автоматически откликается на свежие вакансии на hh.ru по фильтрам (React, TypeScript, remote). Обновляет токен, отправляет отклик с резюме, шлёт Telegram-уведомления.
+
+**Технологии:** Python 3, `src/hh_applicant_tool/`, systemd oneshot-сервис по таймеру.
+
+**Запуск вручную:**
+```bash
+cd /home/alice/Documents/apply-hub
+source .env
+python -m hh_applicant_tool
+```
+
+**Статус сервиса:**
+```bash
+systemctl --user status hh-worker.service
+systemctl --user start hh-worker.service   # запустить прямо сейчас
+journalctl --user -u hh-worker.service -f  # логи в реальном времени
+```
+
+**Конфиг:** `.env` в корне репозитория. Ключи: `HH_CLIENT_ID`, `HH_CLIENT_SECRET`, `HH_ACCESS_TOKEN`, `HH_REFRESH_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
 
 ---
 
-## Описание
+### 2. LinkedIn — `linkedin-worker.service`
 
-> [!IMPORTANT]
-> Данной утилите похуй на "запрет" доступа к API HH сторонним приложениям, так как она прикидывается официальным приложением под Android
+**Что делает:** LinkedIn Easy Apply через Selenium — автоматически применяет на вакансии с кнопкой Easy Apply.
 
-> [!NOTE]
-> Утилита для генерации сопроводительного письма может использовать AI, в т. ч. ChatGPT. Подробное описание ниже
+**Технологии:** Python 3 + Selenium, виртуальное окружение `.venv/`.
 
-Утилита для успешных волчат и старых волков с опытом, служащая для автоматизации действий на HH.RU, таких как рассылка откликов на подходящие вакансии и обновление всех резюме (бесплатный аналог услуги на HH). Утилита локально хранит информацию об откликах, в т. ч. полученные контакты. Это удобно, так как контакт сохранится, даже если вышлют отказ в дальнейшем. Мой совет: скрывайте свой номер от работодателя, если рассылаете отклики через утилиту, а то количество жуликов на красном сайте, мягко говоря, зашкаливает. У утилиты есть канал в телеграме [HH Applicant Tool](https://t.me/hh_applicant_tool) и [чат](https://t.me/hh_applicant_chat). В чате (тот, на который ссылку до этого кинул, а не личный чат с ботом) через [Сеньора Овчарку](https://t.me/senior_hr_bot) с помощью команды `/search` вы можете поискать контакты работовладельцев (большинство кабанчиков и их свинок там именно заедушных рабов и дураков ищут, а отсутствие последних называют дефицитом кадров), например, чтобы послать нахуй хрюшу, выславшую отказ. Старый канал <s>[HH Resume Automate](https://t.me/hh_resume_automate)</s> был выпилен по крысиной жалобе администрации сайта Хуй-Хуй (Ха-Ха, Хе-Хе и т. п.), так как красный круг с двумя буквами h, нарисованный мною лично — это нарушение их авторских прав...
-
-Работает с Python >= 3.11. Нужную версию Python можно поставить через
-asdf/pyenv/conda и что-то еще. В школотронской Manjaro и даже в последних Ubuntu
-версия Python новее.
-
-Данная утилита кроссплатформенна. Она гарантированно работает на Linux, Mac и Windows, в т. ч. WSL. При наличии рутованного телефона можно вытащить `access` и `refresh` токены из официального приложения и добавить их в конфиг.
-
-Пример работы:
-
-![image](https://github.com/user-attachments/assets/a0cce1aa-884b-4d84-905a-3bb207eba4a3)
-
-> [!IMPORTANT]
-> Когда заканчиваются подходящие вакансии (это видно по логу), то клонируйте резюме и делайте его активным
-
-> [!NOTE]
-> Утилита автоматически подхватывает прокси из переменных окружения типа http_proxy или HTTPS_PROXY
+**Статус:**
+```bash
+systemctl --user status linkedin-worker.service
+journalctl --user -u linkedin-worker.service -f
+```
 
 ---
 
-## Предыстория
+### 3. Telegram-каналы → career-сайты — `job-hub-monitor.service`
 
-Долгое время я делал массовые заявки с помощью консоли браузера:
+**Что делает:** Мониторит Telegram-каналы с вакансиями (revacancy, g_jobbot, easy_frontend_jobs, remote_it), скорит каждую вакансию по профилю, ставит в очередь и автоматически откликается через Playwright.
 
-```js
-$$('[data-qa="vacancy-serp__vacancy_response"]').forEach((el) => el.click());
+**Технологии:** Node.js, GramJS (Telegram MTProto), SQLite, Playwright.
+
+**Исходники:** `platforms/rvc/`
+
+**Статус:**
+```bash
+systemctl --user status job-hub-monitor.service
+journalctl --user -u job-hub-monitor.service -f
 ```
 
-Оно работало, хоть и не идеально: например, при отклике на некоторые вакансии перебрасывало на другую страницу. Поэтому я пробовал автоматизировать рассылки через `p[yu]ppeteer` (ныне заменен `playwright`), пока не прочитал [документацию](https://github.com/hhru/api) и не обнаружил, что **API** (интерфейс) содержит все необходимые мне методы. Headhunter позволял создавать свое приложение, но там была ручная модерация, а палиться в нарушении правил пользования сайтом (автоматические отклики запрещены) не хотелось. И тогда я [декомпилировал](https://gist.github.com/s3rgeym/eee96bbf91b04f7eb46b7449f8884a00) официальное приложение для **Android**, получил **CLIENT_ID** и **CLIENT_SECRET**, необходимые для работы через **API**. Сейчас же утилита работает в гибридном режиме через **API** и **веб-версию**, так как ряд действий, типа решения тестов, можно выполнить только через сайт. Меня интересовала именно возможность рассылки со своего сервера, а для этого нужна работа через **CLI**, т. е. какого-то графического фронтенда нет и не планируется, но никто не запрещает его вам написать.
+**Конфиг:** `platforms/rvc/credentials.env`
+```
+TG_INGEST_MODE=gramjs
+TELEGRAM_API_ID=...
+TELEGRAM_API_HASH=...
+TELEGRAM_SESSION_FILE=/path/to/.telegram_session
+TELEGRAM_PROXY_URL=socks5://127.0.0.1:10808
+AUTO_APPLY=true
+PLAYWRIGHT_ENABLED=true
+FORM_SUBMIT=true
+JOB_HUB_DB=/path/to/job-hub.db
+```
+
+**Ручной запуск:**
+```bash
+cd platforms/rvc
+node monitor/run.js
+```
 
 ---
 
-## Запуск через Docker
+### 4. Career-сайты (Playwright) — `platforms/apply/`
 
-Это рекомендованный разработчиком способ. Если не работает стандартная установка, то используйте его. Также это самый простой способ запуска и использования утилиты, требующий скопипастить 5 команд. Он подойдет обладателям выделенных серверов, используемых под VPN. Единственным недостатком использования `docker` является его требовательность к месту, так как для запуска Chromium, который используется при авторизации, нужно половину убунты поставить (более гига).
+**Что делает:** Открывает страницу вакансии, находит форму, заполняет поля (имя, email, телефон, резюме, cover letter), опционально сабмитит.
 
-Для начала нужно установить `docker` и `docker-compose`:
+**Поддерживаемые платформы:**
 
-```sh
-sudo apt install docker.io docker-compose-v2
+| ID | Сайт | allowAutoSubmit |
+|---|---|---|
+| `rwb_careers` | career.rwb.ru (Wildberries) | ✅ да |
+| `ozon_careers` | career.ozon.ru | ✅ да |
+| `avito_careers` | career.avito.com | ✅ да |
+| `beeline_careers` | job.beeline.ru | ✅ да |
+| `cloudru_careers` | cloud.ru/career | ✅ да |
+| `vk_careers` | team.vk.company / internship.vk.company | ❌ нет (студ. форма требует DOB) |
+| `yandex_careers` | yandex.ru/jobs | ❌ нет (нужна headed-проверка) |
+| `sber_careers` | rabota.sber.ru | ❌ нет (нужна headed-проверка) |
+| `tbank_careers` | team.tbank.ru | ❌ нет (нужна headed-проверка) |
+| `alfabank_careers` | job.alfabank.ru | ❌ нет (форма за логином) |
+| `moysklad_careers` | moysklad.ru/company/careers | ❌ нет (форма за логином) |
+| `habr_career` | career.habr.com | ❌ нет (нужен login-once) |
+| `djinni` | djinni.co | ❌ нет (нужен login-once) |
+| `getmatch` | getmatch.ru | ❌ нет (нужна проверка) |
+| `hirehi` | hirehi.ru | ❌ нет (нужна проверка) |
+
+**CLI:**
+```bash
+cd platforms/apply
+source credentials.env
+
+# Smoke одной вакансии (без сабмита)
+FORM_SUBMIT=0 node cli.js career-smoke 'https://career.rwb.ru/vacancies/12345'
+
+# Smoke всех известных платформ
+FORM_SUBMIT=0 node cli.js career-smoke --all
+
+# Отклик через rvc.global матчи
+node cli.js rvc-global-apply           # запуск (FORM_SUBMIT берётся из env)
+node cli.js rvc-global-apply --dry-run # только показать, не отправлять
+node cli.js rvc-global-apply 5         # максимум 5 вакансий
+
+# Применить следующую вакансию из очереди (из Telegram-каналов)
+node cli.js apply-next
+node cli.js apply-next 3   # следующие 3
+
+# Аудит статистики
+node cli.js audit
 ```
 
-Выкачиваем репозиторий и переходим в каталог:
-
-```sh
-git clone https://github.com/s3rgeym/hh-applicant-tool
-cd hh-applicant-tool
+**Конфиг:** `platforms/apply/credentials.env`
+```
+AUTO_APPLY=1
+PLAYWRIGHT_ENABLED=1
+FORM_SUBMIT=1
+APPLY_NAME="Ilya Silkin"
+APPLY_EMAIL=ilyasilkin27@gmail.com
+RVC_GLOBAL_TOKEN=eyJ...   # JWT из app.rvc.global localStorage
+RVC_GLOBAL_API=https://api.rvc.global
 ```
 
-> [!IMPORTANT]
-> Команды с docker-compose нужно запускать строго, находясь в данном каталоге!
-
-Теперь авторизуемся:
-
-```sh
-docker-compose run -u docker -it hh_applicant_tool \
-  hh-applicant-tool -vv auth -k
+**Профиль кандидата:** `platforms/apply/profile.yaml`
+```yaml
+role: Frontend Developer
+contact:
+  email: ilyasilkin27@gmail.com
+  phone: "+79958890127"
+  telegram: "@ilyayaya27"
 ```
 
-Пример вывода:
+---
 
-```
-📨 Код был отправлен. Проверьте почту или SMS.
-📩 Введите полученный код: 1234
-🔓 Авторизация прошла успешно!
-```
+### 5. rvc.global — встроено в `platforms/apply/`
 
-Авторизация с заданными логином и паролем выглядит так:
+**Что делает:** Читает список matched-вакансий через JWT API (`https://api.rvc.global`), извлекает apply-ссылки из описаний, роутит на career-адаптеры, сохраняет state чтобы не дублировать.
 
-```sh
-docker-compose run -u docker -it hh_applicant_tool \
-  hh-applicant-tool -vv auth -k '<login>' -p '<password>'
+**Запуск:**
+```bash
+cd platforms/apply
+source credentials.env
+node cli.js rvc-global-apply
 ```
 
-Капча отобразится только в терминале с поддержкой протокола **kitty**, например, в **Kitty**, **Ghostty** или **Konsole**.
+**State:** `platforms/apply/data/rvc-global-state.json` — хранит ID уже обработанных вакансий по статусу `applied`/`fill_only`. Чтобы повторить отклик — удали нужную запись из этого файла.
 
-Если ваш терминал не поддерживает kitty protocol, то можно попробовать использовать sixel protocol:
+**Токен:** JWT из `localStorage.getItem('principal')` на `app.rvc.global`. Срок — ~14 дней. При истечении (API вернёт 401) обнови `RVC_GLOBAL_TOKEN` в `credentials.env`.
 
-```sh
-docker-compose run -u docker -it hh_applicant_tool \
-  hh-applicant-tool -vv auth -s
-```
+---
 
-Подробно про авторизацию можно почитать [здесь](#авторизация).
+## Профиль кандидата
 
-В случае успешной авторизации можно запускать рассылку откликов по крону:
-
-```sh
-docker-compose up -d
-```
-
-Что будет делать?
-
-- Рассылать отклики со всех опубликованных резюме.
-- Поднимать резюме.
-
-Просмотр логов `cron`:
-
-```sh
-docker compose logs -f
-```
-
-В выводе должно быть что-то типа:
-
-```sh
-hh_applicant_tool  | [Wed Jan 14 08:33:53 MSK 2026] Running startup tasks...
-hh_applicant_tool  | ℹ️ Токен не истек, обновление не требуется.
-hh_applicant_tool  | ✅ Обновлено Программист
-```
-
-Чтобы прекратить просмотр логов, нажмите `Ctrl-C`.
-
-Информацию об ошибках можно посмотреть в файле `config/log.txt`, а контакты работодателей — в `config/data` с помощью `sqlite3`. В `config/config.json` хранятся токены, дающие доступ к аккаунту.
-
-Также советую отредактировать файл `letter.txt`.
-
-Запущенные сервисы докер стартуют автоматически после перезагрузки. Остановить их можно выполнив:
-
-```sh
-docker-compose down
-```
-
-Чтобы обновить утилиту, в большинстве случаев достаточно в каталоге выполнить:
-
-```sh
-git pull
-```
-
-В редких случаях нужно пересобрать все:
-
-```sh
-docker compose up -d --build
-```
-
-Чтобы рассылать отклики с нескольких аккаунтов, нужно переписать `docker-compose.yml`:
+`platforms/apply/profile.yaml` — единый источник правды для career-адаптеров:
 
 ```yaml
-services:
-  # Не меняем ничего тут
-  hh_applicant_tool:
-    # ...
-
-  # Добавляем новые строки
-
-  # Просто копипастим, меняя имя сервиса, container_name и значение HH_PROFILE_ID
-  hh_second:
-    extends: hh_applicant_tool
-    container_name: hh_second
-    environment:
-      - HH_PROFILE_ID=second
-
-  hh_third:
-    extends: hh_applicant_tool
-    container_name: hh_third
-    environment:
-      - HH_PROFILE_ID=third
-
-  # Общий шаблон для новых профилей
-  уникальное_имя_сервиса:
-    extends: hh_applicant_tool
-    # может совпадать с именем сервиса
-    container_name: уникальное_имя_контейнера
-    environment:
-      - HH_PROFILE_ID=название_профиля
+active_market: ru
+role: Frontend Developer
+location: Berlin
+markets:
+  - ru_remote
+keywords:
+  - react
+  - typescript
+  - frontend
+  - next.js
+contact:
+  telegram: "@ilyayaya27"
+  email: "ilyasilkin27@gmail.com"
+  phone: "+79958890127"
+market_assets:
+  ru:
+    cover_letter_path: /home/alice/Documents/apply-hub/letter.txt
+    resume_path: /home/alice/Documents/apply-hub/resume_ru.pdf
+    hh_resume_id: 7ddbda16ff109325f00039ed1f774437315866
 ```
-
-> [!IMPORTANT]
-> В этом файле важны отступы!
-
-Обратите внимание на `HH_PROFILE_ID` — его значение указывается при авторизации, если профиль отличен от дефолтного. Далее нужно авторизоваться в каждом профиле:
-
-```sh
-# Авторизуемся со второго профиля
-docker-compose exec -u docker -it hh_applicant_tool \
-  hh-applicant-tool --profile-id second auth -k
-
-# Авторизуемся с третьего профиля
-docker-compose exec -u docker -it hh_applicant_tool \
-  hh-applicant-tool --profile-id third auth -k
-
-# И так далее
-```
-
-Ну и выполнить `docker-compose up -d`, чтобы запустить новые сервисы.
-
-[Команды](#описание-команд) можно потестировать в запущенном контейнере:
-
-```sh
-$ docker-compose exec -u docker -it hh_applicant_tool bash
-docker@1897bdd7c80b:/app$ hh-applicant-tool config -p
-/app/config/config.json
-docker@1897bdd7c80b:/app$ hh-applicant-tool refresh-token
-ℹ️ Токен не истек, обновление не требуется.
-docker@1897bdd7c80b:/app$
-```
-
-> [!IMPORTANT]
-> Обратите внимание, что `docker-compose exec`/`docker-compose run` запускаются с аргументами `-u docker`. Только для пользователя `docker` установлен `chromium`, необходимый для авторизации, а также это избавляет от проблем с правами, когда созданные файлы для изменения требуют root-права.
-
-Если хотите команду `apply-vacancies` вызывать с какими-то аргументами, то создайте в корне файл `apply-vacancies.sh`:
-
-```sh
-#!/bin/bash
-
-# Пример с фильтрацией по исключаемым словам
-/usr/local/bin/python -m hh_applicant_tool apply-vacancies \
-  -l letter.txt \
-  --excluded-filter "fullstack|junior|php" # укажите любые аргументы
-```
-
-В файлах `startup.sh` и `crontab` замените `/usr/local/bin/python -m hh_applicant_tool apply-vacancies` на `/bin/sh /app/apply-vacancies.sh`.
 
 ---
 
-## Стандартная установка
+## Запуск с нуля (новая машина)
 
-### Установка утилиты
-
-Универсальный способ с использованием pipx (требует пакета `python-pipx` в Arch):
+### Зависимости
 
 ```bash
-# Полная версия с поддержкой авторизации, включает Node.js и различные утилиты
-# Обычный пакет без [playwright] можно использовать на сервере, если перенести туда конфиг, и весит
-# он почти на 500МБ меньше. Думаем (c) s3rgeym. Подписаться
-$ pipx install 'hh-applicant-tool[playwright]'
+# Node.js v20+
+node --version
 
-# Чтобы выводить капчу через sixel нужен pillow
-$ pipx install 'hh-applicant-tool[playwright,pillow]'
+# Python 3.11+
+python3 --version
 
-# Если хочется использовать самую последнюю версию, то можно установить ее через git
-$ pipx install "git+https://github.com/s3rgeym/hh-applicant-tool"
+# Playwright браузеры
+cd platforms/apply && npx playwright install chromium
+cd platforms/rvc  && npx playwright install chromium
 
-# Для обновления до новой версии
-$ pipx upgrade hh-applicant-tool
+# Python venv для LinkedIn
+python3 -m venv .venv
+.venv/bin/pip install selenium
+
+# Node зависимости
+cd platforms/apply && npm install
+cd platforms/rvc   && npm install
 ```
 
-pipx добавляет исполняемый файл `hh-applicant-tool` в `~/.local/bin`, делая эту команду доступной. Путь до `~/.local/bin` должен быть в `$PATH` (в большинстве дистрибутивов он добавлен).
-
-Традиционный способ для Linux/Mac:
-
-```sh
-mkdir -p ~/.venvs
-python -m venv ~/.venvs/hh-applicant-tool
-# Это придется делать постоянно, чтобы команда hh-applicant-tool стала доступна
-.  ~/.venvs/hh-applicant-tool/bin/activate
-pip install 'hh-applicant-tool[playwright]'
-```
-
-Отдельно я распишу процесс установки в **Windows** в подробностях:
-
-- Для начала поставьте последнюю версию **Python 3** любым удобным способом.
-- Запустите **PowerShell** (не `CMD.EXE`, блять, а именно поверщель) от Администратора и выполните:
-
-  ```ps
-  Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
-  ```
-
-  Данная политика разрешает текущему пользователю (от которого зашли) запускать скрипты. Без нее не будут работать виртуальные окружения.
-
-Далее можно поставить `pipx` и вернуться к инструкции вверху раздела:
-
-- Всё так же от администратора выполните:
-
-  ```ps
-  python -m pip install --user pipx
-  ```
-
-  А затем:
-
-  ```ps
-  python -m pipx ensurepath
-  ```
-
-- Перезапускаем Terminal/Powershell и проверяем:
-
-  ```ps
-  pipx -h
-  ```
-
-С использованием вирт. окружений:
-
-- Создайте и активируйте виртуальное окружение:
-
-  ```ps
-  PS> python -m venv hh-applicant-venv
-  PS> .\hh-applicant-venv\Scripts\activate
-  ```
-
-- Поставьте все пакеты в виртуальное окружение `hh-applicant-venv`:
-
-  ```ps
-  (hh-applicant-venv) PS> pip install 'hh-applicant-tool[playwright]'
-  ```
-
-- Проверьте, работает ли оно:
-
-  ```ps
-  (hh-applicant-venv) PS> hh-applicant-tool -h
-  ```
-
-- В случае неудачи вернитесь к первому шагу.
-- Для последующих запусков сначала активируйте виртуальное окружение.
-
-### Дополнительные зависимости
-
-После вышеописанного нужно установить зависимости в виде Chromium и др:
-
-```sh
-hh-applicant-tool install
-```
-
-Этот шаг необязателен. Все это нужно только для авторизации.
-
----
-
-## Авторизация
-
-Прямая авторизация:
+### Telegram-сессия (один раз)
 
 ```bash
-hh-applicant-tool authorize '<ваш телефон или email>' -p '<пароль>'
+cd platforms/telegram
+node generate-session.js   # вводишь номер телефона + код
+# сохраняет .telegram_session
 ```
 
-Если вы пропустили пункт про установку зависимостей, то увидите такую ошибку:
-
-```sh
-[E] BrowserType.launch: Executable doesn't exist at...
-```
-
-Если по какой-то причине не был установлен `playwright`:
-
-```sh
-[E] name 'async_playwright' is not defined
-```
-
-Если не помните пароль или др. причины, то можно авторизоваться с помощью одноразового кода:
+### systemd сервисы
 
 ```bash
-$ hh-applicant-tool authorize '<ваш телефон или email>'
-📨 Код был отправлен. Проверьте почту или SMS.
-📩 Введите полученный код: 1387
-🔓 Авторизация прошла успешно!
+# Скопировать unit-файлы
+cp platforms/rvc/deploy/systemd/job-hub-monitor.service ~/.config/systemd/user/
+cp systemd/hh-worker.service ~/.config/systemd/user/
+# linkedin-worker.service — устанавливается отдельно (путь к venv)
+
+systemctl --user daemon-reload
+systemctl --user enable --now job-hub-monitor.service
+systemctl --user enable hh-worker.service    # запускается по таймеру
+systemctl --user enable --now linkedin-worker.service
 ```
 
-Если же при вводе правильных данных возникает ошибка авторизации, то, скорее всего, требуется ввод капчи.
-
-Капчу можно ввести через терминал, если тот поддерживает **kitty protocol** (например, **Kitty**, **Konsole**, **Ghostty** и др):
-
-```sh
-hh-applicant-tool authorize --use-kitty
-```
-
-<img width="843" height="602" alt="Untitled" src="https://github.com/user-attachments/assets/8f5dec0c-c3d4-4c5c-bd8b-3aeffa623d87" />
-
-Также для вывода капчи можно использовать **sixel protocol**: `--use-sixel/--sixel/-s`. Это старый протокол, реализованный во множестве терминалов в **Linux**/**BSD** (**macOS**). Он также поддерживается в **Windows Terminal**, начиная с версии [1.22](https://devblogs.microsoft.com/commandline/windows-terminal-preview-1-22-release/#sixel-image-support).
-
-Из популярных современных терминалов вывод графики не поддерживает **Alacritty**.
-
-Ручная авторизация с запуском встроенного браузера:
-
-```sh
-hh-applicant-tool authorize --manual
-```
-
-Проверка авторизации:
+### Проверка
 
 ```bash
-$ hh-applicant-tool whoami
-🆔 27405918 Кузнецов Андрей Владимирович [ 📄 1 | 👁️ +115 | ✉️ +28 ]
+systemctl --user status job-hub-monitor.service
+systemctl --user status linkedin-worker.service
+systemctl --user status hh-worker.service
+
+# Тесты
+cd platforms/apply && npm test   # 73 теста
+cd platforms/rvc   && npm test
 ```
 
-В случае успешной авторизации токены будут сохранены в `config.json`.
+---
 
-При удачной авторизации логин (почта или телефон) и пароль, если последний был передан, запоминаются и будут подставляться автоматически, если не указать их явно.
+## Для AI-агентов
 
-Токен доступа выдается на две недели. Он обновляется автоматически. Для его ручного обновления нужно выполнить:
+### Добавить новую career-платформу
 
+1. **`platforms/apply/adapters/platforms/hosts.js`** — добавь в `CAREER_PLATFORMS`:
+```javascript
+{ id: 'new_careers', pattern: /new\.company\.ru\/careers/i }
+```
+
+2. **`platforms/apply/adapters/platforms/specs.js`** — добавь в `PLATFORM_SPECS`:
+```javascript
+new_careers: {
+  ...CORP_RU,          // базовые RU-селекторы
+  formless: true,      // если нет <form> (SPA) — иначе убрать
+  pageSettleMs: 6000,  // ждать рендера SPA
+  allowAutoSubmit: false, // включить после headed-проверки
+},
+```
+
+3. **Smoke-тест без сабмита:**
 ```bash
-hh-applicant-tool refresh-token
+cd platforms/apply
+PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 node cli.js career-smoke 'https://new.company.ru/careers/vacancy/123'
 ```
 
-Помните, что у `refresh_token` тоже есть время жизни, поэтому может потребоваться полная авторизация.
+4. Если поля корректно заполнились → `allowAutoSubmit: true` → повторить с `FORM_SUBMIT=1`.
 
----
+### Обновить rvc.global токен
 
-## Описание команд
+Токен живёт ~14 дней. Когда API возвращает 401:
 
-Примеры команд:
+1. Открыть `https://app.rvc.global` в браузере, войти через Telegram
+2. DevTools → Application → LocalStorage → ключ `principal` → скопировать значение поля `token`
+3. Вставить в `platforms/apply/credentials.env`:
+   ```
+   RVC_GLOBAL_TOKEN=eyJhbGci...новый токен
+   ```
 
-```bash
-# Общий вид: сначала глобальные настройки, затем команда и её аргументы
-$ hh-applicant-tool [options] <operation> [args]
+### Добавить Telegram-канал для мониторинга
 
-# Справка по глобальным флагам и список операций
-$ hh-applicant-tool -h
-
-# Справка по операции
-$ hh-applicant-tool authorize -h
-
-# Авторизуемся
-$ hh-applicant-tool authorize
-
-# Авторизация с использованием другого профиля
-$ hh-applicant-tool --profile profile123 authorize
-
-# Рассылаем заявки
-$ hh-applicant-tool apply-vacancies
-
-# Для тестирования поисковой строки и других параметров, используйте --dry-run.
-# С ним отклики не отправляются, а лишь выводятся сообщения
-$ hh-applicant-tool -vv apply-vacancies --search "Python программист" --per-page 3 --total-pages 1 --dry-run
-
-# Фильтруем вакансии по исключаемым словам (fullstack, junior, php и т.п.)
-$ hh-applicant-tool apply-vacancies --search "Python backend" --excluded-filter "fullstack,junior,php,java" --dry-run
-
-# Поднимаем резюме
-$ hh-applicant-tool update-resumes
-
-# Ответить работодателям
-$ hh-applicant-tool reply-employers
-
-# Просмотр лога в реальном времени
-$ hh-applicant-tool log -f
-
-# Посмотреть содержимое конфига
-$ hh-applicant-tool config
-
-# Редактировать конфиг в стандартном редакторе
-$ hh-applicant-tool config -e
-
-# Вывести значение из конфига
-$ hh-applicant-tool config -k token.access_token
-
-# Установить значение в конфиге, например, socks-прокси
-$ hh-applicant-tool config -s proxy_url socks5h://localhost:1080
-
-# Удалить значение из конфига
-$ hh-applicant-tool config -u proxy_url
-
-# Утилита все данные об откликах хранит в SQLite
-$ hh-applicant-tool query 'select count(*) from vacancy_contacts;'
-+----------+
-| count(*) |
-+----------+
-|    42    |
-+----------+
-
-# Экспорт контактов в csv
-$ hh-applicant-tool query 'select * from vacancy_contacts' --csv -o
-contacts.csv
-
-# Выполнение запросов в интерактивном режиме
-$ hh-applicant-tool query
-
-# Чистим отказы
-$ hh-applicant-tool clear-negotiations
-
-# При обновлении может сломаться схема БД, для ее починки нужно выполнить
-# поочерёдно все миграции, добавленные после выхода последней версии
-$ hh-applicant-tool migrate
-List of migrations:
-
-  [1]: 2026-01-07
-
-Choose migration [1] (Keep empty to exit): 1
-✅ Success!
-
-# Вывести все настройки
-$ hh-applicant-tool settings
-+----------+-------------------------+-------------------------+
-| Тип      | Ключ                    | Значение                |
-+----------+-------------------------+-------------------------+
-| str      | user.email              | dmitry.kozlov@yandex.ru |
-+----------+-------------------------+-------------------------+
-
-# Получить значение по ключу
-$ hh-applicant-tool settings auth.username
-
-# Установить email, используемый для автологина
-$ hh-applicant-tool settings auth.username 'user@example.com'
+Отредактировать `platforms/rvc/sources.yaml`:
+```yaml
+- id: new_channel
+  type: telegram_channel
+  preview: new_channel   # @username без @
+  market: ru
+  priority: 2
+  automation_tier: ingest_auto
+  enabled: true
 ```
 
-Глобальные настройки:
-
-- `-v` используется для вывода отладочной информации. Два таких флага, например, выводят запросы к **API**.
-- `-c <path>` путь до каталога, где хранятся конфигурации.
-- `--profile <profile-id>` можно указать профиль, данные которого будут храниться в подкаталоге.
-
-| Операция                           | Описание                                                                                                                                                                                                                                                                                                |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **authorize**, **auth**            | Авторизация на hh.ru. Введенные логин и пароль "запоминаются" и будут использованы при следующем вызове команды.                                                                                                                                                                                        |
-| **logout**                         | Выйти из профиля (отозвать токен)                                                                                                                                                                                                                                                                       |
-| **ui**                             | Запуск UI для рассылки и управления откликами                                                                                                                                                                                                                                                         |
-| **whoami**, **id**                 | Выводит информацию об авторизованном пользователе                                                                                                                                                                                                                                                       |
-| **list-resumes**, **list**, **ls** | Список резюме                                                                                                                                                                                                                                                                                           |
-| **update-resumes**, **update**     | Обновить все резюме. Аналогично нажатию кнопки «Обновить дату».                                                                                                                                                                                                                                         |
-| **clone-resume**                   | Клонировать резюме                                                                                                                                                                                                                                                                                      |
-| **apply-vacancies**, **apply**     | Откликнуться на подходящие вакансии. Если указана строка для поиска (`--search`), то поиск будет произведен по вакансиям, иначе по списку рекомендованных вакансий. Лимит = 200 в день. На HH есть спам-фильтры, так что лучше не рассылайте отклики со ссылками, иначе рискуете попасть в теневой бан. |
-| **reply-employers**, **reply**     | Ответить во все чаты с работодателями, где нет ответа либо не прочитали ваш предыдущий ответ                                                                                                                                                                                                            |
-| **clear-negotiations**             | Отмена откликов                                                                                                                                                                                                                                                                                         |
-| **clear-skipped**                  | Очистка базы пропущенных вакансий. С флагом `--reason` можно указать конкретную причину (`ai_rejected`, `excluded_filter`).                                                                                                                                                                             |
-| **call-api**, **api**              | Вызов произвольного метода API с выводом результата.                                                                                                                                                                                                                                                    |
-| **refresh-token**, **refresh**     | Обновляет access_token.                                                                                                                                                                                                                                                                                 |
-| **config**                         | Показывает содержимое конфига. С флагом -e открывает его для редактирования.                                                                                                                                                                                                                            |
-| **settings**                       | Просмотр и управление настройками в базе данных. Простое key-value хранилище.                                                                                                                                                                                                                           |
-| **install**                        | Устанавливает зависимости, такие как браузер Chromium, необходимые для авторизации.                                                                                                                                                                                                                     |
-| **uninstall**                      | Удаляет браузер Chromium, используемый для авторизации.                                                                                                                                                                                                                                                 |
-| **check-proxy**                    | Проверяет используемые прокси                                                                                                                                                                                                                                                                           |
-| **migrate**                        | Починить базу                                                                                                                                                                                                                                                                                           |
-| **query**                          | Выполнение SQL-запросов к базе. Схема БД находится в файле [schema.sql](./src//hh_applicant_tool/storage/queries/schema.sql). Если скормить ее [DeepSeek](https://chat.deepseek.com), то он поможет написать любой запрос.                                                                              |
-| **log**                            | Просмотр файла-лога. С флагом -f будет следить за изменениями. В логах частично скрыты идентификаторы в целях безопасности.                                                                                                                                                                             |
-
-> [!IMPORTANT]
-> Почитайте про [язык для поисковых запросов](https://hh.ru/article/1175). Он позволяет отсеивать мусор при поиске подходящих вакансий, например, `(Go OR Golang) NOT PHP NOT JavaScript`.
-
-Утилита использует систему плагинов. Все они лежат в [operations](https://github.com/s3rgeym/hh-applicant-tool/tree/main/src/hh_applicant_tool/operations). Модули, расположенные там, автоматически добавляются как доступные команды. За основу для своего плагина можно взять [whoami.py](https://github.com/s3rgeym/hh-applicant-tool/tree/main/src/hh_applicant_tool/operations/whoami.py).
-
-Для тестирования запросов к API используйте команду `call-api` совместно с `jq` для обработки JSON.
-
-Пример поиска работодателей:
-
-```bash
-$ hh-applicant-tool call-api /employers text="IT" only_with_vacancies=true | jq -r '.items[].alternate_url'
-https://hh.ru/employer/1966364
-https://hh.ru/employer/4679771
-...
-```
-
-Синтаксис `call-api` немного похож на `httpie` или `curlie`:
-
-```sh
-hh-applicant-tool call-api [-m {GET|POST|PUT|DELETE}] <endpoint> [<key=value> ...]
-```
-
-Если используется метод `GET` или `DELETE` (или ничего не указано), то параметры будут переданы как query string. Во всех остальных случаях параметры передаются как `application/x-www-form-urlencoded` в теле запроса.
-
-Для поиска вакансий по региону в `apply-vacancies` нужно указать параметр `area`. Можно его указывать как для страны (каз - 40, бел - 2238), так и отдельного города (мск - 1).
-
-Список **area id** по стране:
-
-```sh
-hh-applicant-tool -vv api /areas | jq -r '.[] | select(.name == "Беларусь")'
-```
-
-Документация для работы с API соискателей была удалена с ха-ха.сру и его корпоративного репозитория. Можете не искать, они затерли даже историю репозитория. Но я через веб-архив выкачал документацию. Чтобы ее посмотреть, клонируйте этот репозиторий и откройте файл `./docs/hhapi/openapi.yml`, например, с помощью [Swagger Viewer](https://marketplace.visualstudio.com/items?itemName=Arjun.swagger-viewer).
-
-<img width="740" height="768" alt="image" src="https://github.com/user-attachments/assets/597fa31e-8bab-48c8-8601-ab9dfc9075b1" />
-
-Также существуют CLI-утилиты:
-
-```sh
-sudo pacman -S openapi-tui
-
-openapi-tui --input docs/hhapi/openapi.yml
-```
-
-Для тех, кто любит просматривать документацию в браузере:
-
-```sh
-npx @redocly/cli preview -d docs/hhapi
-```
-
-Потом нужно открыть в браузере [http://localhost:4000](http://localhost:4000).
-
-> [!NOTE]
-> Отдельные замечания у меня к API HH. Оно пиздец какое кривое. Например, при создании заявки возвращается пустой ответ либо редирект, хотя по логике должен возвращаться созданный объект. Также в ответах сервера нет `Content-Length`. Из-за этого нельзя узнать, есть ли тело у ответа сервера, нужно его пробовать прочитать. Я так понял, там какой-то прокси оборачивает все запросы и отдает всегда `Transfer-Encoding: Chunked`. А еще он возвращает 502 ошибку, когда бэкенд на Java падает либо долго отвечает (таймаут).
-> По сути, никакие дополнительные команды, кроме имеющихся, не нужны. Вы можете сделать что угодно с помощью `call-api`, но если хочется чего-то особенного, можно добавить свои команды.
-
----
-
-## Использование AI
-
-Для генерации сопроводительных писем при откликах и ответа в чаты работодателей (`reply-employers`) можно использовать OpenAI (ChatGPT).
-
-Пример рассылки откликов с генерированным письмом:
-
-```sh
-hh-applicant-tool apply-vacancies -f --ai
-```
-
-Генерацию сопроводительных писем в откликах я считаю лишней, так как их никто не читает. Экономнее воспользоваться [шаблонами сообщений](#шаблоны-сообщений).
-
-### AI-фильтрация вакансий
-
-Функция AI-фильтрации позволяет автоматически отсеивать неподходящие вакансии перед откликом. AI анализирует ваше резюме и сравнивает его с требованиями вакансии.
-
-#### Режимы фильтрации
-
-`heavy` - должность, навыки, опыт работы, задачи, технологи
-
-`light` - быстрая оценка по названию резюме и ключевым навыкам
-
-#### Примеры использования
-
-```sh
-# Полный анализ вакансий
-hh-applicant-tool apply-vacancies --ai-filter heavy
-
-# Быстрый анализ
-hh-applicant-tool apply-vacancies --ai-filter light
-
-# С кастомным rate limit
-hh-applicant-tool apply-vacancies --ai-filter heavy --ai-rate-limit 20
-```
-
-#### Параметры
-
-> [!CAUTION]
-> Эти параметры я планирую удалить в рамках борьбы с нейрослопом в коде
-
-- `--ai-filter` — режим фильтрации: `heavy` или `light`
-- `--ai-rate-limit` — ограничение запросов к AI в минуту (по умолчанию 40)
-
-### OpenAI/ChatGPT
-
-> [!IMPORTANT]
-> То что тут в примерах были указаны эндпоинты чата ГПТ НЕ ОЗНАЧАЕТ, ЧТО УТИЛИТА
-> НЕ МОЖЕТ РАБОТАТЬ С ДРУГИМИ ПРОВАЙДЕРАМИ! ОНА РАБОТАЕТ С ЛЮБЫМИ!!!
-
-Отредактируйте конфиг:
-
-```sh
-hh-applicant-tool config -e
-```
-
-#### Раздельная конфигурация
-
-> [!CAUTION]
-> В рамках борьбы с нейрослопом формат конфигов может быть изменен.
-
-Для разных задач можно настроить отдельные параметры AI:
-
-```json
-{
-  "openai_cover_letter": {
-    "api_key": "ВАШ_API_КЛЮЧ",
-    "base_url": "https://api.openai.com/v1/chat/completions",
-    "model": "gpt-4o-mini",
-    "temperature": 0.7,
-    "max_completion_tokens": 1000,
-    "rate_limit": 40
-  },
-  "openai_vacancy_filter": {
-    "api_key": "ВАШ_API_КЛЮЧ",
-    "base_url": "https://api.openai.com/v1/chat/completions",
-    "model": "gpt-4o-mini",
-    "temperature": 0.1,
-    "max_completion_tokens": 100,
-    "rate_limit": 60
-  },
-  "openai_captcha": {
-    "api_key": "ВАШ_API_КЛЮЧ",
-    "base_url": "https://api.openai.com/v1/chat/completions",
-    "model": "gpt-4o-mini",
-    "temperature": 0.0,
-    "max_completion_tokens": 20,
-    "rate_limit": 40
-  }
-}
-```
-
-> `api.openai.com` указан в качестве примера. Утилита работает с любыми провайдерами хуИИ в тч с локальынми
-> При использовании Docker нужно указывать IP хоста вместо `localhost`, например `http://192.168.1.100:11434/v1/chat/completions`
-
-### Автоматическое решение капчи
-
-Утилита поддерживает автоматическое распознавание капчи при откликах на вакансии через Vision AI.
-
-#### Настройка
-
-Добавьте секцию `openai_captcha` в конфиг:
-
-```json
-{
-  "openai_captcha": {
-    "api_key": "ВАШ_API_КЛЮЧ",
-    "base_url": "https://api.openai.com/v1/chat/completions",
-    "model": "gpt-4o-mini",
-    "temperature": 0.0,
-    "max_completion_tokens": 20,
-    "rate_limit": 40
-  }
-}
-```
-
-- **model** обязательно с поддержкой Vision!
-
----
-
-## Шаблоны сообщений
-
-Команды `apply-vacancies` и `reply-employers` поддерживают специальный формат сообщений.
-
-Также в сообщении можно использовать плейсхолдеры:
-
-- **`%(vacancy_name)s`**: Название вакансии.
-- **`%(employer_name)s`**: Название работодателя.
-- **`%(first_name)s`**: Имя пользователя.
-- **`%(last_name)s`**: Фамилия пользователя.
-- **`%(email)s`**: Email пользователя.
-- **`%(phone)s`**: Телефон пользователя.
-- **`%(resume_title)s`**: Название резюме.
-- **`%(resume_hash)s`**: Идентификатор резюме.
-- **`%(resume_url)s`**: Ссылка на резюме.
-
-Эти плейсхолдеры могут быть использованы в сообщениях для отклика на вакансии, чтобы динамически подставлять соответствующие данные в текст сообщения. Например:
+### Структура данных
 
 ```
-Меня заинтересовала ваша вакансия %(vacancy_name)s. Прошу рассмотреть мою кандидатуру. С уважением, %(first_name)s %(last_name)s.
-```
+platforms/apply/data/
+├── applications.db         # SQLite: все отклики (дата, статус, URL)
+├── rvc-global-state.json   # applied/fill_only по ID вакансий rvc.global
+└── harvest-latest.json     # последний цикл Telegram-скана
 
-Также можно делать текст уникальным с помощью `{}`. Внутри них через `|` перечисляются варианты, один из которых будет случайно выбран:
-
-```
-Увольте того {идиота|придурка}, который придумал этот {тупой|сраный|дурацкий} вопрос.
-```
-
-В итоге получится что-то вроде:
-
-```
-Увольте того идиота, который придумал этот сраный вопрос.
-```
-
-`{}` могут быть вложенными.
-
----
-
-## Данные приложения
-
-Данные приложения хранятся по следующим путям:
-
-| OS          | Путь                                                     |
-| ----------- | -------------------------------------------------------- |
-| **Windows** | `C:\Users\%username%\AppData\Roaming\hh-applicant-tool\` |
-| **macOS**   | `~/Library/Application Support/hh-applicant-tool/`       |
-| **Linux**   | `~/.config/hh-applicant-tool/`                           |
-
-### Конфигурационный файл
-
-Главный конфиг называется `config.json`. Он содержит токены. Полный путь до конфигурационного файла можно вывести с помощью команды:
-
-```bash
-hh-applicant-tool config -p
-```
-
-Через конфиг можно задать дополнительные настройки:
-
-| Имя атрибута            | Описание                                                                                   |
-| ----------------------- | ------------------------------------------------------------------------------------------ |
-| `proxy_url`             | Прокси, используемый для всех запросов, например, `socks5h://localhost:1080`               |
-| `api_delay`             | Минимальная задержка между отправкой запросов к API HH                                     |
-| `reply_message`         | Сообщение для ответа работодателю при отклике на вакансии, см. формат сообщений            |
-| `vacancy_test_answer`   | Ответ на вопрос из теста. Можно использовать синтаксис шаблонов.                           |
-| `user_agent`            | Кастомный юзерагент, передаваемый при каждом запросе. По умолчанию используется от Android |
-| `client_id`             | Идентификатор клиента, используемый для авторизации. По умолчанию используется от Android  |
-| `client_secret`         | Секретный ключ клиента, используемый для авторизации. По умолчанию используется от Android |
-| `openai_cover_letter`   | Конфигурация AI для генерации сопроводительных писем                                       |
-| `openai_vacancy_filter` | Конфигурация AI для фильтрации вакансий                                                    |
-| `openai_captcha`        | Конфигурация AI для распознавания капчи                                                    |
-
-Если вы залогинитесь под другим аккаунтом, то данные не исчезнут.
-
-При использовании профиля, отличного от дефолтного, данные хранятся в подкаталоге.
-
-### Логи
-
-В `log.txt` всегда можно посмотреть подробную информацию об ошибках. В целях безопасности токены, идентификаторы резюме и т. п. затираются.
-
-### База данных
-
-Данные о работодателях и их вакансиях хранятся в файле `data`. Это обычная база `sqlite3`, вы ее можете просматривать через `DB Browser` и т. п.
-
-Что хранится в базе:
-
-- все просмотренные вакансии;
-- профили работодателей;
-- контакты работодателей;
-- данные об откликах;
-- пропущенные вакансии (отклонённые фильтром или AI);
-- иные данные, важные для работы.
-
-#### Пропущенные вакансии
-
-При использовании AI-фильтрации или exclude-фильтра вакансии сохраняются в таблицу `skipped_vacancies` с указанием причины:
-
-| Причина           | Описание                  |
-| ----------------- | ------------------------- |
-| `ai_rejected`     | Отклонена AI-фильтром     |
-| `excluded_filter` | Попала под exclude-фильтр |
-
-Для управления пропущенными вакансиями используется команда `clear-skipped`:
-
-```sh
-# Показать количество пропущенных вакансий
-hh-applicant-tool clear-skipped --dry-run
-
-# Очистить все пропущенные вакансии
-hh-applicant-tool clear-skipped
-
-# Очистить только отклонённые AI
-hh-applicant-tool clear-skipped --reason ai_rejected
-
-# Очистить только исключённые фильтром
-hh-applicant-tool clear-skipped --reason excluded_filter
-```
-
-Для произвольных запросов к базе используйте команду `query`:
-
-```sh
-# Сколько вакансий отклонено по каждой причине
-hh-applicant-tool query "SELECT reason, COUNT(*) FROM skipped_vacancies GROUP BY reason"
-
-# Последние отклонённые вакансии
-hh-applicant-tool query "SELECT * FROM skipped_vacancies ORDER BY created_at DESC LIMIT 10"
-```
-
-### cookies.txt
-
-В `cookies.txt` хранятся куки, установленные при авторизации на сайте. Они нужны
-для решения тестов при отклике на вакансию. Не редактируйте этот файл вручную.
-
----
-
-## Отправка писем при отклике
-
-Для рассылки писем на почту рекрутера используйте флаг `--send-email` и добавьте в конфиг:
-
-```json
-{
-  "smtp": {
-    "host": "smtp.yandex.ru",
-    "port": 465,
-    "user": "your_login@yandex.ru",
-    "password": "your_app_password",
-    "ssl": true,
-    "from": "Иван Иванов <your_login@yandex.ru>"
-  },
-  "apply_mail_subject": "{Отклик|Резюме} на вакансию %(vacancy_name)s",
-  "apply_mail_body": "{Здравствуйте|Добрый день}!\n\nМеня заинтересовала ваша вакансия %(vacancy_name)s.\nМое резюме: %(resume_url)s\n\nС уважением, %(first_name)s."
-}
+platforms/rvc/data/
+└── job-hub.db              # SQLite: вакансии из TG-каналов, scoring, статусы
 ```
 
 ---
 
-## Использование в скриптах
+## Текущий статус (30 июня 2026)
 
-Если хотите использовать `hh-applicant-tool` в своих скриптах, то можно это сделать так:
-
-```python
-from hh_applicant_tool import HHApplicantTool
-
-tool = HHApplicantTool([
-    # Передаем глобальные настройки как обычно
-    "--proxy-url", "socks5://localhost:1080",
-    "--config-path", "/path/to/config"
-])
-
-print(tool.api_client.get('/me'))
-
-# Какую-то вспомогательную информацию можно сохранять в настройках
-import datetime as dt
-
-tool.storage.settings.set_value("_last_script_run", dt.datetime.now())
-
-# Учтите, что в таком случае токены, которые могут обновиться при выполнении запросов,
-# нужно сохранять вручную
-tool.save_token()
-```
-
-Команды тоже можно вызывать:
-
-```python
->>> from hh_applicant_tool import HHApplicantTool(['auth']).run()
-...
-📨 Код был отправлен. Проверьте почту или SMS.
-📩 Введите полученный код:
-```
-
----
-
-## Дополнительные настройки
-
-Отключение проверки версии с выводом предупреждения:
-
-```sh
-hh-applicant-tool settings disable_version_check true
-```
-
----
-
-## Связанные проекты
-
-- [Приложение под Android](https://github.com/s3rgeym/hh-resume-automate)
-- [Простенький скрипт только рассылающий отклики](https://github.com/s3rgeym/hh-auto-apply)
-
----
-
-## Лицензионное соглашение (Limited Non-Commercial License)
-
-Данное программное обеспечение распространяется на условиях **ограниченной некоммерческой лицензии**.
-
-- **Разрешённое использование**
-  - **Личное использование и изучение:** Разрешается копирование и модификация кода исключительно для личного ознакомления, обучения и отладки **без права публикации или распространения изменений**.
-  - **Интеграция в программное обеспечение:** Разрешается включение данного кода в состав сторонних бесплатных некоммерческих продуктов **только при полном сохранении исходного кода в неизменном виде**.
-  - **Атрибуция:** Любое распространение, демонстрация или использование кода (в том числе в составе других продуктов) допускается **только при обязательном указании автора и ссылки на оригинальный репозиторий**.
-
-- **Ограничения на использование**
-  **Строго запрещается** использование данного кода в любых коммерческих целях без предварительного письменного согласия автора, включая, но не ограничиваясь:
-  - Интеграцией в платные сервисы, приложения, веб-сайты либо использованием в рамках оказания платных услуг.
-  - Публикацией, распространением или передачей третьим лицам **модифицированных (изменённых) версий** кода.
-  - Перепродажей, сублицензированием либо использованием кода в интересах коммерческих организаций.
-
-- **Отказ от ответственности**
-  Программное обеспечение предоставляется по принципу «как есть» (**AS IS**). Автор не несёт ответственности за любые прямые или косвенные убытки, включая, но не ограничиваясь, блокировкой аккаунтов, потерей данных или иными негативными последствиями, возникшими в результате использования данного программного обеспечения.
-
-**© 2023-2026 Sergey M. Все права защищены.**
+| Платформа | Сервис | Статус |
+|---|---|---|
+| HH.ru | hh-worker.service | ✅ enabled, запускается по таймеру |
+| LinkedIn | linkedin-worker.service | ✅ active (running) |
+| Telegram-каналы | job-hub-monitor.service | ✅ active (running) |
+| rvc.global | `cli.js rvc-global-apply` | ✅ ручной запуск; 3 отклика отправлено сегодня |
+| career-сайты | `cli.js career-smoke/apply-next` | ✅ RWB, Beeline, Облако.ру авто-сабмит |

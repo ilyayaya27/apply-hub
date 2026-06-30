@@ -6,11 +6,13 @@
 - **HH:** скил **`hh-clicker`** — `.claude/skills/hh-clicker/SKILL.md` (авторизация, AI-письма, отклики, чаты, поднятие резюме).
 - **LinkedIn:** `platforms/linkedin/`, **`platforms/linkedin/README.md`**. Перед боевым apply — `dryRun = True` в `config.py`.
 - **Telegram:** `platforms/telegram/`, **`platforms/telegram/README.md`**. Разово: `./telegram-harvest.sh`. Фон: `./telegram-worker.sh` / `systemctl --user start telegram-worker`. SMTP/apply: `platforms/apply/credentials.env` (шаблон `credentials.env.example`).
+- **Apply (career/form):** `platforms/apply/`, **`platforms/apply/README.md`**. Career SSOT + smoke: **`platforms/apply/docs/CAREER_PLATFORMS.md`**, **`platforms/apply/docs/CAREER_SMOKE.md`**. Fill-only smoke: `PLAYWRIGHT_ENABLED=1 FORM_SUBMIT=0 node cli.js career-smoke '<url>'`.
 
 ## Документация
 - **`GUIDE.md`** — HH (быстрый старт — вверху).
 - **`platforms/linkedin/README.md`** — LinkedIn (квоты, orchestrator, systemd).
 - **`platforms/telegram/README.md`** — Telegram harvest (GramJS).
+- **`platforms/apply/docs/CAREER_PLATFORMS.md`** — Telegram → queue → Playwright career auto-apply (для агентов).
 - **`CHANGELOG.md`** — что менялось по датам.
 
 ## 🥇 Главное правило

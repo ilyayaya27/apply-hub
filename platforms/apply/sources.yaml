@@ -39,7 +39,7 @@
   enabled: true
   market: ru
   automation_tier: apply_auto
-  host: job.ozon.ru
+  host: career.ozon.ru
 
 - id: avito_careers
   type: platform

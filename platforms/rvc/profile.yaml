@@ -1,0 +1,28 @@
+# SSOT профиля кандидата для fit + exclusions (job-hub, RU market)
+active_market: ru
+role: Frontend Developer
+location: Berlin
+markets:
+  - ru_remote
+keywords:
+  - react
+  - typescript
+  - frontend
+  - next.js
+  - nuxt
+exclude_patterns:
+  - /1с|1c\b|bitrix|php only|golang only|java only|devops only/i
+  - /seo|копирайт|маркетолог|бухгалтер|qa only|тестировщик only/i
+  - /designer only|дизайнер only/i
+min_fit_score: 55
+# Legacy fallbacks (prefer market_assets.ru)
+cover_letter_path: /home/alice/Documents/apply-hub/letter.txt
+resume_path: /home/alice/Documents/apply-hub/resume_ru.pdf
+market_assets:
+  ru:
+    cover_letter_path: /home/alice/Documents/apply-hub/letter.txt
+    resume_path: /home/alice/Documents/apply-hub/resume_ru.pdf
+    hh_resume_id: 7ddbda16ff109325f00039ed1f774437315866
+contact:
+  telegram: "@ilyasilkin27"
+  email: ""

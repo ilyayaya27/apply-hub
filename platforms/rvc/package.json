@@ -1,0 +1,23 @@
+{
+  "name": "rvc-applicant",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:feature": "node cli.js scan --fixture fixtures/revacancy-channel.html",
+    "scan": "node cli.js scan",
+    "monitor": "node monitor/run.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "cheerio": "^1.0.0",
+    "telegram": "^2.26.22",
+    "undici": "^7.28.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1",
+    "vitest": "^3.2.4"
+  }
+}

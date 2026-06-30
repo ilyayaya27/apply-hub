@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from ..ai.base import AIError
 from ..api import ApiError, datatypes
+from ..api.errors import BadRequest
 from ..main import BaseNamespace, BaseOperation
 from ..screening_prompt import (
     build_reply_ai_query,
@@ -37,7 +38,23 @@ except ImportError:
 logger = logging.getLogger(__package__)
 
 
+def _messaging_open(negotiation: datatypes.Negotiation) -> bool:
+    """HH блокирует переписку при no_invitation / disabled_by_employer."""
+    return negotiation.get("messaging_status") == "ok"
+
+
+def _published_resumes_for_reply(
+    resumes: list[datatypes.Resume], resume_id: str | None
+) -> list[datatypes.Resume]:
+    if resume_id:
+        resumes = list(filter(lambda x: x["id"] == resume_id, resumes))
+    return list(
+        filter(lambda resume: resume["status"]["id"] == "published", resumes)
+    )
+
+
 class Namespace(BaseNamespace):
+    resume_id: str | None
     reply_message: str
     max_pages: int
     only_invitations: bool
@@ -112,7 +129,8 @@ class Operation(BaseOperation):
     def run(self, tool: HHApplicantTool, args: Namespace) -> None:
         self.tool = tool
         self.api_client = tool.api_client
-        self.resume_id = tool.first_resume_id()
+        # None → все опубликованные резюме (см. --resume-id в setup_parser)
+        self.resume_id = args.resume_id
         self.reply_message = args.reply_message or tool.config.get(
             "reply_message"
         )
@@ -169,17 +187,7 @@ class Operation(BaseOperation):
     def reply_employers(self):
         blacklist = set(self.tool.get_blacklisted())
         me: datatypes.User = self.tool.get_me()
-        resumes = self.tool.get_resumes()
-        resumes = (
-            list(filter(lambda x: x["id"] == self.resume_id, resumes))
-            if self.resume_id
-            else resumes
-        )
-        resumes = list(
-            filter(
-                lambda resume: resume["status"]["id"] == "published", resumes
-            )
-        )
+        resumes = _published_resumes_for_reply(self.tool.get_resumes(), self.resume_id)
         self._reply_chats(user=me, resumes=resumes, blacklist=blacklist)
 
     def _reply_chats(
@@ -222,6 +230,14 @@ class Operation(BaseOperation):
                     continue
 
                 if self.only_invitations and not state_id.startswith("inv"):
+                    continue
+
+                if not _messaging_open(negotiation):
+                    logger.debug(
+                        "Пропуск чата %s: messaging_status=%s",
+                        negotiation["id"],
+                        negotiation.get("messaging_status"),
+                    )
                     continue
 
                 nid = negotiation["id"]
@@ -395,6 +411,14 @@ class Operation(BaseOperation):
                     print(f"📨 Отправлено для {vacancy['alternate_url']}")
 
             except ApiError as ex:
+                if isinstance(ex, BadRequest) and ApiError.has_error_value(
+                    "disabled_by_employer", ex.data
+                ):
+                    logger.info(
+                        "Чат %s: переписка закрыта работодателем",
+                        negotiation.get("id"),
+                    )
+                    continue
                 logger.error(ex)
 
         print("📝 Сообщения разосланы!")

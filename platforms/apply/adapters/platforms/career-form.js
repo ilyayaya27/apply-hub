@@ -1,7 +1,10 @@
 import { config } from '../../lib/config.js';
 import { getMarketAssets } from '../../lib/profile.js';
+import { enrichPlanWithAiAnswers } from '../../lib/ai-screening.js';
+import { loadSessionState } from '../../lib/session.js';
 import {
   planFormFillFromHtml,
+  planFormFillFormlessFromHtml,
   runHtmlFormFlow,
 } from '../forms/html-form.js';
 import { applyHtmlForm } from '../forms/html-form.js';
@@ -47,14 +50,26 @@ export const applyCareerForm = async (vacancy, ctx, platformId) => {
 
   try {
     const { chromium } = await import('playwright');
-    const browser = await chromium.launch({ headless: config.playwrightHeadless });
-    const page = await browser.newPage();
+    const browser = await chromium.launch({
+      headless: config.playwrightHeadless,
+      args: spec.browserArgs ?? [],
+    });
+    const storageState = loadSessionState(platformId);
+    const context = await browser.newContext({
+      locale: 'ru-RU',
+      ...(spec.browserUserAgent ? { userAgent: spec.browserUserAgent } : {}),
+      ...(storageState ? { storageState } : {}),
+    });
+    const page = await context.newPage();
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    if (spec.pageSettleMs) await page.waitForTimeout(spec.pageSettleMs);
 
     await openCareerApplyForm(page, spec);
 
     const html = await page.content();
-    const plan = planFormFillFromHtml(html, ctx.profile, ctx.letter);
+    const plan = spec.formless
+      ? planFormFillFormlessFromHtml(html, ctx.profile, ctx.letter)
+      : planFormFillFromHtml(html, ctx.profile, ctx.letter);
     if (!plan.ok) {
       await browser.close();
       return {
@@ -65,33 +80,42 @@ export const applyCareerForm = async (vacancy, ctx, platformId) => {
       };
     }
 
+    await enrichPlanWithAiAnswers(plan, vacancy, ctx.profile, ctx.letter);
+
     const { resume_path: resumePath } = getMarketAssets(ctx.profile);
+    const shouldSubmit = config.formSubmit && (spec.allowAutoSubmit ?? false);
     const result = await runHtmlFormFlow(page, plan, {
-      submit: config.formSubmit,
+      submit: shouldSubmit,
       resumePath,
       submitSelectors: spec.submitSelectors,
+      formless: spec.formless,
+      waitFor: spec.waitFor,
     });
 
     await browser.close();
 
-    if (result.submitted && config.formSubmit) {
+    if (result.submitted && shouldSubmit) {
+      const aiFields = plan.fields.filter((f) => f.aiGenerated).map((f) => f.label ?? f.name ?? f.selector);
       return {
         ok: true,
         status: 'applied',
         adapter: platformId,
-        note: `career form submit ${url}`,
+        note: JSON.stringify({ url, aiFields }),
         plan,
         filled: result.filled,
       };
     }
 
     const filledCount = Object.keys(result.filled ?? {}).length;
-    if (!config.formSubmit && filledCount > 0) {
+    if (!shouldSubmit && filledCount > 0) {
+      const reason = !config.formSubmit
+        ? 'FORM_SUBMIT=false'
+        : `${platformId}: allowAutoSubmit=false (нужна headed-проверка)`;
       return {
         ok: true,
         status: 'fill_only',
         adapter: platformId,
-        note: `filled ${filledCount} fields (FORM_SUBMIT=false)`,
+        note: `filled ${filledCount} fields (${reason})`,
         plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
       };
     }
@@ -99,9 +123,9 @@ export const applyCareerForm = async (vacancy, ctx, platformId) => {
     return {
       ok: false,
       status: 'needs_human',
-      error: config.formSubmit
+      error: shouldSubmit
         ? `${platformId}: submit не сработал (капча или разметка)`
-        : 'FORM_SUBMIT=false — форма не заполнена (разметка или капча)',
+        : 'форма не заполнена (разметка или капча)',
       adapter: platformId,
       plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
     };

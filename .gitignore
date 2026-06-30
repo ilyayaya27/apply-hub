@@ -112,7 +112,15 @@ platforms/telegram/logs/
 !platforms/apply/lib/
 platforms/apply/data/
 platforms/apply/credentials.env
+platforms/apply/sessions/
 platforms/apply/node_modules/
 
 # Personal resume PDF (paths in profile.yaml are local)
 resume_ru.pdf
+
+# RVC platform (platforms/rvc) — local state and secrets
+platforms/rvc/node_modules/
+platforms/rvc/data/
+platforms/rvc/sessions/
+platforms/rvc/credentials.env
+platforms/rvc/state.json

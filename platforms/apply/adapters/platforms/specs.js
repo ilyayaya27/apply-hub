@@ -14,14 +14,79 @@ const CORP_RU = {
   submitSelectors: ['button[type="submit"]', 'input[type="submit"]'],
 };
 
-/** @type {Record<string, { applyButtonSelectors?: string[], waitFor?: string, submitSelectors?: string[] }>} */
+const UA_CHROME =
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+const ANTIBOT_ARGS = ['--disable-blink-features=AutomationControlled'];
+
+/**
+ * @type {Record<string, {
+ *   applyButtonSelectors?: string[],
+ *   waitFor?: string,
+ *   submitSelectors?: string[],
+ *   formless?: boolean,
+ *   pageSettleMs?: number,
+ *   browserArgs?: string[],
+ *   browserUserAgent?: string,
+ *   allowAutoSubmit?: boolean,
+ * }>}
+ */
 export const PLATFORM_SPECS = {
-  rwb_careers: CORP_RU,
-  yandex_careers: CORP_RU,
-  ozon_careers: CORP_RU,
-  avito_careers: CORP_RU,
-  sber_careers: CORP_RU,
-  tbank_careers: CORP_RU,
+  rwb_careers: { ...CORP_RU, allowAutoSubmit: true },
+
+  /** React SPA с модальным окном — нет <form>, используем formless path */
+  yandex_careers: {
+    formless: true,
+    pageSettleMs: 6_000,
+    browserArgs: ANTIBOT_ARGS,
+    browserUserAgent: UA_CHROME,
+    applyButtonSelectors: [
+      'button:has-text("Откликнуться")',
+      'a:has-text("Откликнуться")',
+      '[class*="VacancyResponseButton"]',
+      'button[data-testid*="response"]',
+    ],
+    waitFor: 'input[type="email"], input[placeholder], textarea',
+    submitSelectors: [
+      'button:has-text("Отправить")',
+      'button:has-text("Откликнуться")',
+      'button[type="submit"]',
+    ],
+    allowAutoSubmit: false, // включить после headed-проверки
+  },
+
+  /** Vue modal без <form>; поля по placeholder/id */
+  ozon_careers: {
+    ...CORP_RU,
+    formless: true,
+    pageSettleMs: 12_000,
+    browserArgs: ANTIBOT_ARGS,
+    browserUserAgent: UA_CHROME,
+    waitFor: 'input[placeholder="Email"], input[placeholder="Фамилия"]',
+    submitSelectors: [
+      'button:has-text("Отправить отклик")',
+      'button[type="submit"]',
+      'input[type="submit"]',
+    ],
+    allowAutoSubmit: true,
+  },
+
+  avito_careers: { ...CORP_RU, allowAutoSubmit: true },
+
+  /** SPA с динамическим рендером формы — нужен settle перед снапшотом */
+  sber_careers: {
+    ...CORP_RU,
+    formless: true,
+    pageSettleMs: 8_000,
+    browserArgs: ANTIBOT_ARGS,
+    browserUserAgent: UA_CHROME,
+    waitFor: 'input[type="text"], input[type="email"], textarea',
+    allowAutoSubmit: false,
+  },
+
+  /** SPA — проверить URL и форму после smoke */
+  tbank_careers: { ...CORP_RU, allowAutoSubmit: false },
+
+  /** internship.vk.company требует DOB + year_admission/graduation (студенческие поля) — submit вручную */
   vk_careers: {
     applyButtonSelectors: [
       'a:has-text("Откликнуться")',
@@ -30,7 +95,9 @@ export const PLATFORM_SPECS = {
     ],
     waitFor: 'form, [class*="application"]',
     submitSelectors: ['button[type="submit"]', 'input[type="submit"]'],
+    allowAutoSubmit: false,
   },
+
   habr_career: {
     applyButtonSelectors: [
       'a:has-text("Откликнуться")',
@@ -39,7 +106,9 @@ export const PLATFORM_SPECS = {
     ],
     waitFor: 'form',
     submitSelectors: ['button[type="submit"]', 'input[type="submit"]'],
+    allowAutoSubmit: false,
   },
+
   djinni: {
     applyButtonSelectors: [
       'a:has-text("Apply")',
@@ -49,7 +118,9 @@ export const PLATFORM_SPECS = {
     ],
     waitFor: 'form, .application-form, textarea',
     submitSelectors: ['button[type="submit"]', 'input[type="submit"]'],
+    allowAutoSubmit: false,
   },
+
   getmatch: {
     applyButtonSelectors: [
       'button:has-text("Откликнуться")',
@@ -58,12 +129,16 @@ export const PLATFORM_SPECS = {
     ],
     waitFor: 'form',
     submitSelectors: ['button[type="submit"]'],
+    allowAutoSubmit: false,
   },
+
   hirehi: {
     applyButtonSelectors: ['button:has-text("Откликнуться")', 'a:has-text("Откликнуться")'],
     waitFor: 'form',
     submitSelectors: ['button[type="submit"]'],
+    allowAutoSubmit: false,
   },
+
   jobrockets: {
     applyButtonSelectors: [
       'button:has-text("Отклиться")',
@@ -72,7 +147,40 @@ export const PLATFORM_SPECS = {
     ],
     waitFor: 'form',
     submitSelectors: ['button[type="submit"]'],
+    allowAutoSubmit: false,
   },
+
+  beeline_careers: {
+    ...CORP_RU,
+    formless: true,
+    pageSettleMs: 6_000,
+    browserArgs: ANTIBOT_ARGS,
+    browserUserAgent: UA_CHROME,
+    waitFor: 'input[type="text"], input[type="email"], textarea, [class*="form"]',
+    allowAutoSubmit: true,
+  },
+
+  moysklad_careers: {
+    ...CORP_RU,
+    formless: true,
+    pageSettleMs: 6_000,
+    browserArgs: ANTIBOT_ARGS,
+    browserUserAgent: UA_CHROME,
+    waitFor: 'input[type="text"], input[type="email"], textarea, [class*="form"]',
+    allowAutoSubmit: false,
+  },
+
+  alfabank_careers: {
+    ...CORP_RU,
+    formless: true,
+    pageSettleMs: 6_000,
+    browserArgs: ANTIBOT_ARGS,
+    browserUserAgent: UA_CHROME,
+    waitFor: 'input[type="text"], input[type="email"], textarea, [class*="form"]',
+    allowAutoSubmit: false,
+  },
+
+  cloudru_careers: { ...CORP_RU, allowAutoSubmit: true },
 };
 
 /** @param {string} platformId */

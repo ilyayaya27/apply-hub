@@ -6,6 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=%h/Documents/apply-hub
+ExecStartPre=%h/Documents/apply-hub/lib/ensure-venv.sh
 ExecStartPre=%h/Documents/apply-hub/lib/wait-for-proxy.sh
 ExecStart=%h/Documents/apply-hub/hh-worker.sh
 Restart=on-failure

@@ -4,6 +4,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/ensure-venv.sh
+source "$ROOT/lib/ensure-venv.sh"
 # shellcheck source=lib/hh-common.sh
 source "$ROOT/lib/hh-common.sh"
 LOG="$ROOT/logs/worker.log"
@@ -47,22 +49,30 @@ lift_resume() {
   fi
 }
 
-run_cycle() {
-  log "=== cycle start ==="
+refresh_and_reply() {
+  set +e
+  $PY -m hh_applicant_tool refresh-token >>"$LOG" 2>&1
+  refresh_rc=$?
+  set -e
+  if (( refresh_rc == 1 )); then
+    log "WARN: refresh-token failed"
+  fi
+  log "reply-employers"
+  "$ROOT/reply-employers.sh" >>"$LOG" 2>&1 || log "WARN: reply-employers failed"
+}
 
-  $PY -m hh_applicant_tool refresh-token >>"$LOG" 2>&1 || log "WARN: refresh-token failed"
+run_apply_cycle() {
+  log "=== apply cycle start ==="
+  refresh_and_reply
 
   if should_lift_resume; then
     lift_resume
   fi
 
-  log "reply-employers"
-  "$ROOT/reply-employers.sh" >>"$LOG" 2>&1 || log "WARN: reply-employers failed"
-
   log "apply-vacancies"
   "$ROOT/apply-vacancies.sh" >>"$LOG" 2>&1 || log "WARN: apply-vacancies finished with error or limit"
 
-  log "=== cycle end ==="
+  log "=== apply cycle end ==="
 }
 
 exec 9>"$LOCK"
@@ -75,11 +85,13 @@ log "HH worker started (hours ${WORK_HOUR_START}:00–${WORK_HOUR_END}:00)"
 
 while true; do
   if in_work_hours; then
-    run_cycle
+    run_apply_cycle
     sleep_sec=$((CYCLE_SLEEP_MIN + RANDOM % (CYCLE_SLEEP_MAX - CYCLE_SLEEP_MIN + 1)))
     log "Sleep ${sleep_sec}s before next cycle"
     sleep "$sleep_sec"
   else
+    log "Outside work hours — reply-only cycle"
+    refresh_and_reply
     log "Outside work hours, sleeping 10 min"
     sleep 600
   fi

@@ -35,4 +35,4 @@ class Operation(BaseOperation):
         else:
             # logger.debug("Токен валиден, игнорируем обновление.")
             print("ℹ️ Токен не истек, обновление не требуется.")
-            return 2
+            return 0

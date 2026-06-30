@@ -5,7 +5,8 @@ export const CAREER_PLATFORMS = [
   { id: 'vk_careers', pattern: /(?:team|internship)\.vk\.company/i },
   { id: 'rwb_careers', pattern: /career\.rwb\.ru/i },
   { id: 'yandex_careers', pattern: /yandex\.(?:ru|com)\/jobs/i },
-  { id: 'ozon_careers', pattern: /job\.ozon\.ru/i },
+  /** IT/office — career.ozon.ru; job.ozon.ru = Ozon Job (склад/курьер), не auto-apply */
+  { id: 'ozon_careers', pattern: /career\.ozon\.ru/i },
   { id: 'avito_careers', pattern: /career\.avito\.com/i },
   { id: 'sber_careers', pattern: /rabota\.sber\.ru/i },
   { id: 'tbank_careers', pattern: /(?:team\.)?tbank\.ru/i },
@@ -15,6 +16,10 @@ export const CAREER_PLATFORMS = [
   { id: 'getmatch', pattern: /getmatch\.ru/i },
   { id: 'hirehi', pattern: /hirehi\.ru/i },
   { id: 'jobrockets', pattern: /jobrockets\.ru/i },
+  { id: 'beeline_careers', pattern: /job\.beeline\.ru/i },
+  { id: 'moysklad_careers', pattern: /moysklad\.ru\/company\/careers/i },
+  { id: 'alfabank_careers', pattern: /job\.alfabank\.ru/i },
+  { id: 'cloudru_careers', pattern: /cloud\.ru\/career/i },
 ];
 
 /** @param {string | null | undefined} url */

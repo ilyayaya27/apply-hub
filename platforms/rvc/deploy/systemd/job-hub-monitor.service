@@ -1,0 +1,16 @@
+[Unit]
+Description=Job Hub — scan Telegram and job sources, notify matches
+After=network-online.target
+Wants=network-online.target
+Conflicts=hh-worker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/alice/Documents/apply-hub/platforms/rvc
+EnvironmentFile=-/home/alice/Documents/apply-hub/platforms/rvc/credentials.env
+ExecStart=/usr/bin/node monitor/run.js
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target

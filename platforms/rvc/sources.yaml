@@ -1,0 +1,151 @@
+# Реестр источников job-hub (SSOT). HH и LinkedIn — external, не ingest'им отсюда.
+sources:
+  - id: hh
+    type: external
+    automation_tier: external
+    enabled: false
+    notes: "Покрыто hh-applicant-tool / hh-worker.service"
+
+  - id: linkedin
+    type: external
+    automation_tier: external
+    enabled: false
+    notes: "Покрыто li-easy-apply / li-worker"
+
+  - id: revacancy
+    type: telegram_channel
+    preview: revacancy
+    market: ru
+    priority: 1
+    automation_tier: ingest_auto
+    enabled: true
+
+  - id: revacancy_global
+    type: telegram_channel
+    preview: revacancy_global
+    market: global
+    priority: 1
+    automation_tier: ingest_auto
+    enabled: false
+    notes: "Global/EU — LinkedIn + li-easy-apply, не hub RU"
+
+  - id: g_jobbot
+    type: telegram_channel
+    preview: g_jobbot
+    market: ru
+    priority: 2
+    automation_tier: ingest_auto
+    enabled: true
+
+  - id: easy_frontend_jobs
+    type: telegram_channel
+    preview: easy_frontend_jobs
+    market: ru
+    priority: 1
+    automation_tier: ingest_auto
+    enabled: true
+
+  - id: frontendnotam
+    type: telegram_channel
+    preview: frontendnotam
+    market: ru
+    priority: 2
+    automation_tier: ingest_auto
+    enabled: false
+    notes: "Username не найден в Telegram — канал переименован или удалён"
+
+  - id: javascript_jobs
+    type: telegram_channel
+    preview: javascript_jobs
+    market: ru
+    priority: 2
+    automation_tier: ingest_auto
+    enabled: false
+    notes: "Канал резюме (#резюме #ищуработу), не вакансий — засоряет очередь"
+
+  - id: remote_it
+    type: telegram_channel
+    preview: remote_it
+    market: ru
+    priority: 2
+    automation_tier: ingest_auto
+    enabled: true
+
+  - id: jobforjunior
+    type: telegram_channel
+    preview: jobforjunior
+    market: ru
+    priority: 3
+    automation_tier: ingest_auto
+    enabled: false
+    notes: "Junior — не профиль"
+
+  - id: sparklesjobs
+    type: telegram_channel
+    preview: sparklesjobs
+    market: global
+    priority: 2
+    automation_tier: ingest_auto
+    enabled: false
+    notes: "Global — не RU hub"
+
+  - id: zarubezhom_jobs
+    type: telegram_channel
+    preview: zarubezhom_jobs
+    market: global
+    priority: 2
+    automation_tier: ingest_auto
+    enabled: false
+    notes: "Global — не RU hub"
+
+  - id: hirehi
+    type: platform
+    url: https://hirehi.ru
+    search_url: https://hirehi.ru/vacancies?format=%D1%83%D0%B4%D0%B0%D0%BB%D1%91%D0%BD%D0%BD%D0%BE&specialization=frontend
+    market: ru
+    priority: 1
+    automation_tier: apply_auto
+    enabled: true
+
+  - id: habr
+    type: platform
+    url: https://career.habr.com
+    search_url: https://career.habr.com/vacancies?q=frontend+react+typescript&remote=true
+    market: ru
+    priority: 1
+    automation_tier: apply_auto
+    enabled: true
+
+  - id: getmatch
+    type: platform
+    url: https://getmatch.ru
+    search_url: https://getmatch.ru/vacancies?query=frontend&remote=true
+    market: ru
+    priority: 2
+    automation_tier: apply_auto
+    enabled: true
+
+  - id: vk
+    type: platform
+    url: https://team.vk.company
+    search_url: https://team.vk.company/vacancy/?specialty=frontend
+    market: ru
+    priority: 2
+    automation_tier: apply_auto
+    enabled: true
+
+  - id: jobleads
+    type: platform
+    url: https://www.jobleads.com
+    market: global
+    priority: 3
+    automation_tier: alert_only
+    enabled: false
+    notes: "Paid — только alert, без auto-apply"
+
+  - id: jobrockets
+    type: platform
+    url: https://jobrockets.ru
+    automation_tier: deprecated
+    enabled: false
+    notes: "DNS dead"

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Mock Google Form</title></head>
+<body>
+  <form id="mock-gform">
+    <div role="list">
+      <div role="listitem" class="question">
+        <div id="q1-label">Full name</div>
+        <input type="text" aria-labelledby="q1-label" data-testid="g-short-text" />
+      </div>
+      <div role="listitem" class="question">
+        <div id="q2-label">Email address</div>
+        <input type="email" aria-labelledby="q2-label" data-testid="g-email" />
+      </div>
+      <div role="listitem" class="question">
+        <div id="q3-label">Telegram</div>
+        <input type="text" aria-labelledby="q3-label" data-testid="g-telegram" />
+      </div>
+      <div role="listitem" class="question">
+        <div id="q4-label">Cover letter</div>
+        <textarea aria-labelledby="q4-label" data-testid="g-paragraph"></textarea>
+      </div>
+      <div role="listitem" class="question">
+        <div id="q5-label">Upload resume</div>
+        <input type="file" aria-labelledby="q5-label" data-testid="g-file" />
+      </div>
+    </div>
+    <div role="button" data-testid="g-submit">Submit</div>
+  </form>
+  <script>
+    document.querySelector('[data-testid="g-submit"]').addEventListener('click', () => {
+      document.body.dataset.submitted = 'true';
+    });
+  </script>
+</body>
+</html>
