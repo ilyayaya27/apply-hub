@@ -1,22 +1,24 @@
 /**
  * AI-ответы на скрининговые вопросы в формах заявок.
  * Использует OpenRouter или Groq через OpenAI-совместимый API (нативный fetch).
- * Env: OPENROUTER_API_KEY + OPENROUTER_MODEL, или GROQ_API_KEY + GROQ_MODEL.
+ * Ключи читаются из credentials.env через config.js.
  */
 
+import { config } from './config.js';
+
 function buildAiConfig() {
-  if (process.env.OPENROUTER_API_KEY) {
+  if (config.openrouterApiKey) {
     return {
-      apiKey: process.env.OPENROUTER_API_KEY,
-      baseURL: process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
-      model: process.env.OPENROUTER_MODEL ?? 'openai/gpt-4o-mini',
+      apiKey: config.openrouterApiKey,
+      baseURL: config.openrouterBaseUrl,
+      model: config.openrouterModel,
     };
   }
-  if (process.env.GROQ_API_KEY) {
+  if (config.groqApiKey) {
     return {
-      apiKey: process.env.GROQ_API_KEY,
-      baseURL: process.env.GROQ_BASE_URL ?? 'https://api.groq.com/openai/v1',
-      model: process.env.GROQ_MODEL ?? 'llama3-8b-8192',
+      apiKey: config.groqApiKey,
+      baseURL: config.groqBaseUrl,
+      model: config.groqModel,
     };
   }
   return null;

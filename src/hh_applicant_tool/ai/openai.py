@@ -77,6 +77,9 @@ class ChatOpenAI:
             finally:
                 self._previous_request_time = time.monotonic()
 
+    # Groq иногда возвращает Retry-After > 2000s — ограничиваем чтобы не вешать воркер
+    _MAX_RETRY_DELAY: float = 60.0
+
     def _get_retry_delay(
         self, response: requests.Response, attempt: int
     ) -> float:
@@ -85,11 +88,13 @@ class ChatOpenAI:
         retry_after = response.headers.get("Retry-After")
         if retry_after:
             try:
-                return max(float(retry_after), min_interval)
+                delay = max(float(retry_after), min_interval)
+                return min(delay, self._MAX_RETRY_DELAY)
             except ValueError:
                 try:
                     retry_at = parsedate_to_datetime(retry_after).timestamp()
-                    return max(retry_at - time.time(), min_interval)
+                    delay = max(retry_at - time.time(), min_interval)
+                    return min(delay, self._MAX_RETRY_DELAY)
                 except (TypeError, ValueError, OverflowError):
                     pass
 

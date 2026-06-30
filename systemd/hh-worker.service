@@ -9,7 +9,7 @@ WorkingDirectory=%h/Documents/apply-hub
 ExecStartPre=%h/Documents/apply-hub/lib/ensure-venv.sh
 ExecStartPre=%h/Documents/apply-hub/lib/wait-for-proxy.sh
 ExecStart=%h/Documents/apply-hub/hh-worker.sh
-Restart=on-failure
+Restart=always
 RestartSec=60
 # Groq через openai_proxy_url; HH — напрямую
 Environment=NO_PROXY=localhost,127.0.0.1

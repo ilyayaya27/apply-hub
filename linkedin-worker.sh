@@ -42,6 +42,37 @@ if ! flock -n 9; then
   exit 0
 fi
 
+log_activity_stats() {
+  "$ROOT/.venv/bin/python" - <<'PY'
+import json, os, sys
+from collections import Counter
+from datetime import datetime, timezone, timedelta
+
+path = os.path.join(os.path.dirname(__file__), "platforms/linkedin/data/activity.json")
+if not os.path.exists(path):
+    print("  stats: no activity.json yet")
+    sys.exit(0)
+
+with open(path) as f:
+    d = json.load(f)
+
+jobs = d.get("jobs", {})
+connects = d.get("connects", {})
+
+jc = Counter(v.get("status") for v in jobs.values())
+cc = Counter(v.get("status") for v in connects.values())
+
+today = datetime.now(timezone.utc).date().isoformat()
+yesterday = (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
+
+today_jobs = sum(1 for v in jobs.values() if (v.get("updated_at") or "")[:10] == today and v.get("status") == "applied")
+today_connects = sum(1 for v in connects.values() if (v.get("updated_at") or "")[:10] == today and v.get("status") in ("connected","pending"))
+
+print(f"  total: {jc.get('applied',0)} applied, {jc.get('failed',0)} failed | connects: {cc.get('connected',0)}+{cc.get('pending',0)} pending")
+print(f"  today: {today_jobs} jobs applied, {today_connects} connects sent")
+PY
+}
+
 log "LinkedIn orchestrator worker started"
 
 while true; do
@@ -52,6 +83,7 @@ while true; do
     else
       log "WARN: orchestrator failed (см. platforms/linkedin/logs/orchestrator.log)"
     fi
+    log_activity_stats 2>/dev/null | while IFS= read -r line; do log "$line"; done
     sleep "$(cycle_sleep_seconds)"
   else
     log "Outside work hours, sleeping 10 min"

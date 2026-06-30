@@ -96,6 +96,12 @@ export const config = {
   playwrightHeadless: bool('PLAYWRIGHT_HEADLESS', true),
   /** true = click Submit on forms; default dry-run (fill only) */
   formSubmit: bool('FORM_SUBMIT', bool('PLAYWRIGHT_SUBMIT', false)),
+  openrouterApiKey: env.OPENROUTER_API_KEY ?? '',
+  openrouterBaseUrl: env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
+  openrouterModel: env.OPENROUTER_MODEL ?? 'openai/gpt-4o-mini',
+  groqApiKey: env.GROQ_API_KEY ?? '',
+  groqBaseUrl: env.GROQ_BASE_URL ?? 'https://api.groq.com/openai/v1',
+  groqModel: env.GROQ_MODEL ?? 'llama3-8b-8192',
   /** preview = t.me/s HTML; gramjs = user session (apply-hub/platforms/telegram) */
   tgIngestMode: (env.TG_INGEST_MODE ?? 'preview').toLowerCase(),
   telegramApiId: num('TELEGRAM_API_ID', 0),
