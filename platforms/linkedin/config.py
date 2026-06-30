@@ -153,13 +153,13 @@ applyEnabled = True
 # Пауза connect до конца недели (квота в UI исчерпана; apply продолжаем)
 connectEnabled = False
 # Easy Apply: spread across work-day cycles (li-worker)
-maxApplicationsPerDay = 5
-maxApplicationsPerRun = 1
+maxApplicationsPerDay = 15
+maxApplicationsPerRun = 3
 # Connect: LinkedIn ~20/week; spread evenly by day (see quotas.spread_connect_budget)
 maxConnectsPerWeek = 20
-maxConnectsPerDay = 3
-maxConnectsPerRun = 1
-orchestratorCycleMinutes = 90
+maxConnectsPerDay = 4
+maxConnectsPerRun = 2
+orchestratorCycleMinutes = 60
 workHourStart = 9
 workHourEnd = 20
 
