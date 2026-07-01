@@ -54,7 +54,15 @@ if (platformId === 'yandex_careers') {
 }
 
 try {
-  await page.waitForSelector(LOGIN_DONE_SELECTORS[platformId], { timeout: 180_000 });
+  if (platformId === 'yandex_careers') {
+    // Яндекс редиректит на id.yandex.ru после логина — детектируем по URL или аватару
+    await Promise.race([
+      page.waitForSelector(LOGIN_DONE_SELECTORS[platformId], { timeout: 180_000 }),
+      page.waitForURL(/id\.yandex\.ru/, { timeout: 180_000 }),
+    ]);
+  } else {
+    await page.waitForSelector(LOGIN_DONE_SELECTORS[platformId], { timeout: 180_000 });
+  }
 } catch {
   console.error('[login-once] Тайм-аут — вход не обнаружен. Попробуйте ещё раз.');
   await browser.close();
@@ -63,8 +71,9 @@ try {
 
 // Для Яндекса сохраняем сессию уже находясь на jobs.yandex.ru
 if (platformId === 'yandex_careers') {
+  console.log('[login-once] Переход на yandex.ru/jobs для сохранения jobs-куков...');
   await page.goto('https://yandex.ru/jobs', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
 }
 
 const sessionPath = join(SESSIONS_DIR, `${platformId}.json`);

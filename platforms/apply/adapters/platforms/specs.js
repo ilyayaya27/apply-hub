@@ -56,7 +56,7 @@ export const PLATFORM_SPECS = {
       'button:has-text("Откликнуться")',
       'button[type="submit"]',
     ],
-    allowAutoSubmit: false,
+    allowAutoSubmit: true,
   },
 
   /** Vue modal без <form>; поля по placeholder/id */

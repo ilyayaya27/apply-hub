@@ -4,7 +4,7 @@ export const CAREER_SMOKE_PROBES = [
   { platformId: 'rwb_careers', url: 'https://career.rwb.ru/vacancies/25895' },
   {
     platformId: 'yandex_careers',
-    url: 'https://yandex.ru/jobs/vacancies/razrabotchik-frontenda-v-direkt-45243',
+    url: 'https://yandex.ru/jobs/vacancies/razrabotchik-interfeysov-v-igri-46538',
   },
   {
     platformId: 'ozon_careers',
