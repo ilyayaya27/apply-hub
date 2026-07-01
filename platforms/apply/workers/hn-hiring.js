@@ -109,9 +109,11 @@ export async function runHnHiring({ limit = 20, dryRun = false } = {}) {
     for (const kid of (thread.kids ?? [])) allKids.push(kid);
   }
 
-  // Load cover letter
-  const letterPath = join(ROOT, 'letter.txt');
-  const letter = existsSync(letterPath) ? readFileSync(letterPath, 'utf8').trim() : '';
+  // Load English cover letter (HN hiring is international)
+  const letterPath = existsSync(join(ROOT, 'letter_en.txt'))
+    ? join(ROOT, 'letter_en.txt')
+    : join(ROOT, 'letter.txt');
+  const letter = readFileSync(letterPath, 'utf8').trim();
 
   const results = [];
   let processed = 0;

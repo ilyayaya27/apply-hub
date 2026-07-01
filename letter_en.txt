@@ -1,0 +1,12 @@
+Hi,
+
+I'm Ilya Zuev, a frontend engineer with 5+ years of experience building product-facing interfaces at scale.
+
+Most recently at Alfa-Bank (2.5 years): led frontend for a visual bot-scenario editor used by the contact center — React 18, Next.js 14 SSR, WebSocket, Redux Toolkit. Before that at Evrone: e-commerce marketplace, SaaS products, published a UI kit of 30+ components to npm (Tailwind / shadcn/ui).
+
+Stack: React, TypeScript, Next.js, Redux Toolkit, Jest/RTL, CI/CD, Feature-Sliced Design.
+Impact: Lighthouse 55→85+, test coverage to 65%, initial JS bundle −30% via route-based splitting.
+
+Looking for a fully remote role at an early-stage startup. Available immediately.
+
+Telegram: @ilyayaya27

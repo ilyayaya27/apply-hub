@@ -117,7 +117,7 @@ export async function runWellfound({ limit = 10 } = {}) {
     return { ok: false, error: 'no_session' };
   }
 
-  const letterPath = join(ROOT, 'letter.txt');
+  const letterPath = join(ROOT, 'letter_en.txt');
   const letter = existsSync(letterPath) ? readFileSync(letterPath, 'utf8').trim() : '';
 
   const state = loadState();
