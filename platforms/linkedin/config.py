@@ -150,8 +150,7 @@ dryRun = False
 
 # --- Quotas & orchestrator (enforced via data/quotas.json) ---
 applyEnabled = True
-# Пауза connect до конца недели (квота в UI исчерпана; apply продолжаем)
-connectEnabled = False
+connectEnabled = True
 # Easy Apply: spread across work-day cycles (li-worker)
 maxApplicationsPerDay = 15
 maxApplicationsPerRun = 3
