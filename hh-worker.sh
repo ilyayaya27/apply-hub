@@ -76,8 +76,8 @@ run_apply_cycle() {
 }
 
 exec 9>"$LOCK"
-if ! flock -n 9; then
-  log "Another worker instance is running, exit"
+if ! flock -w 10 9; then
+  log "Another worker instance is running after 10s wait, exit"
   exit 0
 fi
 
