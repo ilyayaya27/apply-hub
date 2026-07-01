@@ -1,5 +1,20 @@
 # Изменения (Changelog)
 
+## 2026-07-01
+
+- 🌐 **rvc.global интеграция** (`platforms/apply/workers/rvc-global.js`): JWT API → извлечение apply URL из HTML описаний → роут на Playwright career-адаптеры → state в `data/rvc-global-state.json`. CLI: `node cli.js rvc-global-apply [--dry-run] [limit]`.
+- ⏰ **rvc-global-worker.timer** — автозапуск каждые 6 часов, oneshot-сервис.
+- 🤖 **OpenRouter AI** (gpt-4o-mini) вместо Groq для HH.ru cover letters и chat replies. Node.js career-адаптеры тоже читают ключ через `config.js`. Groq retry ограничен 60s (был 44 мин при 429).
+- 📋 **ai-screening.js** — AI-ответы на скрининговые вопросы в career-формах (textarea без распознанного ключа = вопрос работодателя → OpenRouter/Groq).
+- 🏢 **Новые career-платформы**: `beeline_careers`, `cloudru_careers` (allowAutoSubmit=true), `alfabank_careers`, `moysklad_careers`.
+- 📱 **Телефон** в `profile.yaml` (`+79958890127`) — заполняется в формах.
+- 📊 **LinkedIn мониторинг** — после каждого цикла в лог пишется сводка: applied/failed/connects total + today.
+- 📊 **daily-digest.sh** — ежедневная сводка в 9:00 по HH.ru / LinkedIn / rvc.global; отправляет в Telegram при наличии `TELEGRAM_NOTIFY_BOT_TOKEN`.
+- 🔧 **hh-worker.service**: `Restart=on-failure` → `Restart=always` — воркер больше не зависает после SIGTERM.
+- 🔼 **LinkedIn квоты**: 5→15 Easy Apply/день, 1→3/цикл, 90→60 мин цикл. Локации: добавлен `Europe`. Дата: `Past 24h` → `Past Week`.
+
+---
+
 Обновления форка **hh-applicant-tool** (менторская программа IT Птица).
 Чтобы обновиться — в папке проекта выполни `git pull`.
 

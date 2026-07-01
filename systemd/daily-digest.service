@@ -1,0 +1,11 @@
+[Unit]
+Description=apply-hub — ежедневная сводка по всем платформам
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/apply-hub
+ExecStart=%h/Documents/apply-hub/scripts/daily-digest.sh
+
+[Install]
+WantedBy=default.target

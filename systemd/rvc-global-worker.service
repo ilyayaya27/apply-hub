@@ -1,0 +1,15 @@
+[Unit]
+Description=rvc.global — auto-apply matched vacancies via career-site adapters
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/apply-hub/platforms/apply
+ExecStart=/usr/bin/node %h/Documents/apply-hub/platforms/apply/cli.js rvc-global-apply
+EnvironmentFile=%h/Documents/apply-hub/platforms/apply/credentials.env
+StandardOutput=append:%h/Documents/apply-hub/logs/rvc-global.log
+StandardError=append:%h/Documents/apply-hub/logs/rvc-global.log
+
+[Install]
+WantedBy=default.target
