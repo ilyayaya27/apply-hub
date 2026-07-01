@@ -100,23 +100,21 @@ node monitor/run.js
 
 **Поддерживаемые платформы:**
 
-| ID | Сайт | allowAutoSubmit |
-|---|---|---|
-| `rwb_careers` | career.rwb.ru (Wildberries) | ✅ да |
-| `ozon_careers` | career.ozon.ru | ✅ да |
-| `avito_careers` | career.avito.com | ✅ да |
-| `beeline_careers` | job.beeline.ru | ✅ да |
-| `cloudru_careers` | cloud.ru/career | ✅ да |
-| `vk_careers` | team.vk.company / internship.vk.company | ❌ нет (студ. форма требует DOB) |
-| `yandex_careers` | yandex.ru/jobs | ❌ нет (нужна headed-проверка) |
-| `sber_careers` | rabota.sber.ru | ❌ нет (нужна headed-проверка) |
-| `tbank_careers` | team.tbank.ru | ❌ нет (нужна headed-проверка) |
-| `alfabank_careers` | job.alfabank.ru | ❌ нет (форма за логином) |
-| `moysklad_careers` | moysklad.ru/company/careers | ❌ нет (форма за логином) |
-| `habr_career` | career.habr.com | ❌ нет (нужен login-once) |
-| `djinni` | djinni.co | ❌ нет (нужен login-once) |
-| `getmatch` | getmatch.ru | ❌ нет (нужна проверка) |
-| `hirehi` | hirehi.ru | ❌ нет (нужна проверка) |
+| ID | Сайт | autoSubmit | Рынок |
+|---|---|---|---|
+| `rwb_careers` | career.rwb.ru (Wildberries) | ✅ | RU |
+| `ozon_careers` | career.ozon.ru | ✅ | RU |
+| `avito_careers` | career.avito.com | ✅ | RU |
+| `beeline_careers` | job.beeline.ru | ✅ | RU |
+| `cloudru_careers` | cloud.ru/career | ✅ | RU |
+| `vk_careers` | team.vk.company | ✅ | RU |
+| `sber_careers` | rabota.sber.ru | ✅ | RU |
+| `yandex_careers` | yandex.ru/jobs | ✅ (нужен login-once) | RU |
+| `tbank_careers` | team.tbank.ru | ❌ (TCP-блок) | RU |
+| `alfabank_careers` | job.alfabank.ru | ❌ (форма за логином) | RU |
+| `habr_career` | career.habr.com | ❌ (нужен login-once) | RU |
+| `djinni` | djinni.co | ❌ (нужен login-once) | RU/INT |
+| `getmatch` | getmatch.ru | ✅ (нужен login-once) | RU |
 
 **CLI:**
 ```bash
@@ -134,9 +132,19 @@ node cli.js rvc-global-apply           # запуск (FORM_SUBMIT берётс�
 node cli.js rvc-global-apply --dry-run # только показать, не отправлять
 node cli.js rvc-global-apply 5         # максимум 5 вакансий
 
+# GetMatch — стартапы, форма с cover letter
+node cli.js getmatch-apply 10          # нужен sessions/getmatch.json
+
+# HN Who Is Hiring — email к фаундерам + career-форма (без логина)
+node cli.js hn-apply 30
+node cli.js hn-apply 30 --dry-run
+
+# Wellfound — стартапы (нужен sessions/wellfound.json)
+node cli.js wellfound-apply 10
+
 # Применить следующую вакансию из очереди (из Telegram-каналов)
 node cli.js apply-next
-node cli.js apply-next 3   # следующие 3
+node cli.js apply-next 3
 
 # Аудит статистики
 node cli.js audit
@@ -147,7 +155,7 @@ node cli.js audit
 AUTO_APPLY=1
 PLAYWRIGHT_ENABLED=1
 FORM_SUBMIT=1
-APPLY_NAME="Ilya Silkin"
+APPLY_NAME="Ilya Zuev"
 APPLY_EMAIL=ilyasilkin27@gmail.com
 RVC_GLOBAL_TOKEN=eyJ...   # JWT из app.rvc.global localStorage
 RVC_GLOBAL_API=https://api.rvc.global
@@ -155,6 +163,9 @@ RVC_GLOBAL_API=https://api.rvc.global
 
 **Профиль кандидата:** `platforms/apply/profile.yaml`
 ```yaml
+name_ru: Илья Зуев          # для RU-платформ
+name_en: Ilya Zuev          # для EN-платформ (Wellfound, HN Hiring)
+active_market: ru
 role: Frontend Developer
 contact:
   email: ilyasilkin27@gmail.com
@@ -162,9 +173,52 @@ contact:
   telegram: "@ilyayaya27"
 ```
 
+**Cover letter:**
+- `letter.txt` — русский (HH.ru, career-сайты RU)
+- `letter_en.txt` — английский (Wellfound, HN Hiring, международные стартапы)
+
 ---
 
-### 5. rvc.global — встроено в `platforms/apply/`
+### 5. HackerNews "Who is Hiring" — `hn-hiring-worker.timer`
+
+**Что делает:** Ежедневно парсит тред «Ask HN: Who is hiring?» (текущий + прошлый месяц), фильтрует frontend + remote, пишет email основателям напрямую или откликается через career-форму.
+
+**Не требует логина** — HN API публичный.
+
+**Расписание:** каждый день в 10:00.
+
+```bash
+# Ручной запуск
+cd platforms/apply && node cli.js hn-apply 30
+
+# Статус таймера
+systemctl --user status hn-hiring-worker.timer
+journalctl --user -u hn-hiring-worker.service
+```
+
+**State:** `platforms/apply/data/hn-hiring-state.json`
+
+---
+
+### 6. GetMatch — `getmatch-worker.timer`
+
+**Что делает:** Каждые 6 часов откликается на frontend-вакансии на getmatch.ru — заполняет salary (200k), city, cover letter и нажимает «Отправить отклик».
+
+**Нужна сессия (один раз):**
+```bash
+node platforms/apply/login-once.js getmatch
+```
+
+**Расписание:** каждые 6 часов.
+
+```bash
+systemctl --user status getmatch-worker.timer
+journalctl --user -u getmatch-worker.service
+```
+
+---
+
+### 7. rvc.global — встроено в `platforms/apply/`
 
 **Что делает:** Читает список matched-вакансий через JWT API (`https://api.rvc.global`), извлекает apply-ссылки из описаний, роутит на career-адаптеры, сохраняет state чтобы не дублировать.
 
@@ -334,12 +388,25 @@ platforms/rvc/data/
 
 ---
 
-## Текущий статус (30 июня 2026)
+## Текущий статус (2 июля 2026)
 
-| Платформа | Сервис | Статус |
+| Платформа | Сервис | Расписание | Статус |
+|---|---|---|---|
+| HH.ru | `hh-worker.timer` | каждые 4ч | ✅ работает |
+| LinkedIn | `linkedin-worker.service` | непрерывно | ✅ работает |
+| Telegram-каналы | `job-hub-monitor.service` | непрерывно | ✅ работает |
+| rvc.global | `rvc-global-worker.timer` | каждые 6ч | ✅ работает |
+| **GetMatch** | `getmatch-worker.timer` | каждые 6ч | ✅ работает (сессия: login-once) |
+| **HN Hiring** | `hn-hiring-worker.timer` | ежедневно 10:00 | ✅ работает (26 откликов 1 июля) |
+| Wellfound | `cli.js wellfound-apply` | вручную | ⚠️ DataDome (применять руками) |
+| career-сайты | `cli.js career-smoke` | по запросу | ✅ RWB, Beeline, VK, Sber, Ozon, Облако.ру |
+
+### Воронка за 1 июля 2026
+
+| Источник | Найдено | Отправлено |
 |---|---|---|
-| HH.ru | hh-worker.service | ✅ enabled, запускается по таймеру |
-| LinkedIn | linkedin-worker.service | ✅ active (running) |
-| Telegram-каналы | job-hub-monitor.service | ✅ active (running) |
-| rvc.global | `cli.js rvc-global-apply` | ✅ ручной запуск; 3 отклика отправлено сегодня |
-| career-сайты | `cli.js career-smoke/apply-next` | ✅ RWB, Beeline, Облако.ру авто-сабмит |
+| HN Who Is Hiring | 45+ frontend+remote | **23** |
+| GetMatch | 9 вакансий | **2** |
+| rvc.global | ~40 вакансий | 1 (fill_only) |
+
+**Итого: 26 откликов за день.** Лучший канал — прямые email основателям через HN.

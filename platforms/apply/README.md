@@ -1,16 +1,35 @@
-# Apply pipeline (vendored from rvc-applicant)
+# Apply pipeline
 
-Маршрутизация откликов по ссылкам из harvest-постов: form, email, hh/linkedin (skip), career-сайты big tech и т.д.
+Маршрутизация откликов: career-сайты (Playwright), email к фаундерам, HN Hiring, GetMatch, Wellfound, rvc.global.
+
+## Воркеры
+
+| Команда | Что делает | Расписание |
+|---|---|---|
+| `node cli.js rvc-global-apply` | Откликается на вакансии с rvc.global через career-форму | `rvc-global-worker.timer` — каждые 6ч |
+| `node cli.js getmatch-apply 10` | GetMatch — форма с cover letter | `getmatch-worker.timer` — каждые 6ч |
+| `node cli.js hn-apply 30` | HN Who Is Hiring — email фаундерам + форма | `hn-hiring-worker.timer` — ежедневно 10:00 |
+| `node cli.js wellfound-apply 10` | Wellfound — стартапы (нужна сессия) | вручную |
+| `node cli.js career-smoke <url>` | Smoke fill-only без сабмита | по запросу |
+
+## Сессии (login-once)
+
+Некоторые платформы требуют авторизацию. Сессия сохраняется в `sessions/{platform}.json`:
+
+```bash
+node login-once.js getmatch      # GetMatch — через визард-регистрацию
+node login-once.js yandex_careers # Яндекс — через passport.yandex.ru
+node login-once.js djinni        # Djinni — через email/login
+```
+
+Wellfound (DataDome): сессию сохранить вручную — экспортировать cookies из Chrome через расширение и поместить в `sessions/wellfound.json`.
 
 ## Документация
 
 | Документ | Зачем |
 |----------|--------|
-| **[docs/CAREER_PLATFORMS.md](docs/CAREER_PLATFORMS.md)** | Полная схема для агентов: harvest → queue → Playwright, SSOT, как добавить площадку |
+| **[docs/CAREER_PLATFORMS.md](docs/CAREER_PLATFORMS.md)** | Полная схема: harvest → queue → Playwright, как добавить площадку |
 | **[docs/CAREER_SMOKE.md](docs/CAREER_SMOKE.md)** | Таблица smoke fill-only по каждой career-площадке |
-
-**Фаза 1:** dry-run — реальных откликов нет.  
-**Фаза 2:** `APPLY_DRY_RUN=0` + `AUTO_APPLY=1` — постановка в очередь и `apply-next` после harvest.
 
 ## Зависимости
 
