@@ -1,0 +1,9 @@
+[Unit]
+Description=Run HN Hiring worker — once per day at 10:00
+
+[Timer]
+OnCalendar=*-*-* 10:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

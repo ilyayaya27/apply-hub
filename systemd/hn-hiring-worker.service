@@ -1,0 +1,15 @@
+[Unit]
+Description=HackerNews Who Is Hiring — auto-apply frontend+remote startups
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/apply-hub/platforms/apply
+ExecStart=/usr/bin/node %h/Documents/apply-hub/platforms/apply/cli.js hn-apply 30
+EnvironmentFile=%h/Documents/apply-hub/platforms/apply/credentials.env
+StandardOutput=append:%h/Documents/apply-hub/logs/hn-hiring.log
+StandardError=append:%h/Documents/apply-hub/logs/hn-hiring.log
+
+[Install]
+WantedBy=default.target
