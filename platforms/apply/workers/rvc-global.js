@@ -12,6 +12,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { applyViaForm } from './form-apply.js';
+import { applyViaEmail } from './email-apply.js';
 import { careerPlatformId } from '../adapters/platforms/hosts.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -42,6 +43,21 @@ function extractApplyUrl(html) {
     if (careerPlatformId(href)) return href.replace(/[?#\s]+$/, '');
   }
 
+  return null;
+}
+
+const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
+
+/** Extract email from description text (href="mailto:..." or bare email) */
+function extractApplyEmail(html) {
+  if (!html) return null;
+  // mailto: links first
+  const mailto = html.match(/href=["']mailto:([^"'>\s]+)["']/i);
+  if (mailto) return mailto[1].trim();
+  // bare email near "резюме" / "отправь" / "письм" keywords
+  const plain = html.replace(/<[^>]+>/g, ' ');
+  const near = plain.match(/(?:резюме|отправ|письм|отклик|почт|email|e-mail|hr@|jobs@)[^.]*?([\w.+\-]+@[\w.\-]+\.[a-z]{2,})/i);
+  if (near) return near[1].trim();
   return null;
 }
 
@@ -119,6 +135,21 @@ export async function applyRvcGlobal({ dryRun = DRY_RUN, limit = 50 } = {}) {
     }
 
     if (!applyUrl) {
+      // Fallback: email in description
+      const applyEmail = extractApplyEmail(v.description);
+      if (applyEmail) {
+        processed++;
+        console.log(`[rvc-global] email         ${v.companyName} — ${v.position}  → ${applyEmail}`);
+        const out = DRY_RUN
+          ? { ok: false, status: 'dry_run', note: `would email ${applyEmail}` }
+          : await applyViaEmail({ ...entry, title: v.position, primaryUrl: applyEmail });
+        results.push({ ...entry, applyEmail, ...out });
+        if (out.ok || out.status === 'applied') {
+          state.applied[key] = { appliedAt: new Date().toISOString(), status: 'email', url: applyEmail };
+          saveState(state);
+        }
+        continue;
+      }
       console.log(`[rvc-global] no_apply_url  ${v.companyName} — ${v.position}`);
       results.push({ ...entry, status: 'no_apply_url', skipped: true });
       continue;
