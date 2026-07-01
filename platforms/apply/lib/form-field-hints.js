@@ -31,10 +31,12 @@ export const matchFieldKey = (label) => {
  * @param {string} key
  */
 export const valueForFieldKey = (profile, letter, key) => {
-  const parts = String(profile.name ?? '')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  // Use Russian name for RU market, Latin for EN/international
+  const isRu = (profile.active_market ?? 'ru').toLowerCase() === 'ru';
+  const displayName = isRu
+    ? (profile.name_ru ?? profile.name ?? '')
+    : (profile.name_en ?? profile.name ?? '');
+  const parts = String(displayName).trim().split(/\s+/).filter(Boolean);
   const firstName = parts[0] ?? '';
   const lastName = parts.slice(1).join(' ') || firstName;
 
@@ -44,7 +46,7 @@ export const valueForFieldKey = (profile, letter, key) => {
     case 'lastName':
       return lastName;
     case 'name':
-      return profile.name ?? '';
+      return displayName;
     case 'email':
       return profile.email ?? '';
     case 'telegram':

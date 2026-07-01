@@ -1,6 +1,9 @@
 # SSOT профиля кандидата для fit + exclusions (job-hub, RU market)
 active_market: ru
 role: Frontend Developer
+# Имя для форм: кириллица для RU-рынка, латиница для EN (LinkedIn / career forms)
+name_ru: Илья Силкин
+name_en: Ilya Silkin
 location: Berlin
 markets:
   - ru_remote

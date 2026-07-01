@@ -33,12 +33,17 @@ const ANTIBOT_ARGS = ['--disable-blink-features=AutomationControlled'];
 export const PLATFORM_SPECS = {
   rwb_careers: { ...CORP_RU, allowAutoSubmit: true },
 
-  /** React SPA с модальным окном — нет <form>, используем formless path */
+  /**
+   * React SPA — требует Яндекс-аккаунт.
+   * login-once: node platforms/apply/login-once.js yandex_careers
+   * После логина: allowAutoSubmit: true
+   */
   yandex_careers: {
     formless: true,
     pageSettleMs: 6_000,
     browserArgs: ANTIBOT_ARGS,
     browserUserAgent: UA_CHROME,
+    requiresSession: true,
     applyButtonSelectors: [
       'button:has-text("Откликнуться")',
       'a:has-text("Откликнуться")',
@@ -51,7 +56,7 @@ export const PLATFORM_SPECS = {
       'button:has-text("Откликнуться")',
       'button[type="submit"]',
     ],
-    allowAutoSubmit: false, // включить после headed-проверки
+    allowAutoSubmit: false,
   },
 
   /** Vue modal без <form>; поля по placeholder/id */
@@ -72,7 +77,7 @@ export const PLATFORM_SPECS = {
 
   avito_careers: { ...CORP_RU, allowAutoSubmit: true },
 
-  /** SPA с динамическим рендером формы — нужен settle перед снапшотом */
+  /** SPA с динамическим рендером формы — smoke OK 2026-07-01 (5 полей + резюме) */
   sber_careers: {
     ...CORP_RU,
     formless: true,
@@ -80,13 +85,16 @@ export const PLATFORM_SPECS = {
     browserArgs: ANTIBOT_ARGS,
     browserUserAgent: UA_CHROME,
     waitFor: 'input[type="text"], input[type="email"], textarea',
-    allowAutoSubmit: false,
+    allowAutoSubmit: true,
   },
 
   /** SPA — проверить URL и форму после smoke */
   tbank_careers: { ...CORP_RU, allowAutoSubmit: false },
 
-  /** internship.vk.company требует DOB + year_admission/graduation (студенческие поля) — submit вручную */
+  /**
+   * team.vk.company — обычные вакансии. allowAutoSubmit: true (smoke OK 2026-07-01).
+   * internship.vk.company требует DOB + year_admission/graduation — отдельно не поддерживается.
+   */
   vk_careers: {
     applyButtonSelectors: [
       'a:has-text("Откликнуться")',
@@ -95,7 +103,7 @@ export const PLATFORM_SPECS = {
     ],
     waitFor: 'form, [class*="application"]',
     submitSelectors: ['button[type="submit"]', 'input[type="submit"]'],
-    allowAutoSubmit: false,
+    allowAutoSubmit: true,
   },
 
   habr_career: {
