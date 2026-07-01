@@ -18,13 +18,14 @@ const LOGIN_URLS = {
   djinni: 'https://djinni.co/login',
   habr_career: 'https://career.habr.com/users/sign_in',
   yandex_careers: 'https://passport.yandex.ru/auth',
+  getmatch: 'https://getmatch.ru/login',
 };
 
 const LOGIN_DONE_SELECTORS = {
   djinni: 'a[href="/my/inbox/"], .navbar-user, [data-name="user-menu"], .bi-person-circle',
   habr_career: '.profile-avatar, .account__username, [data-user]',
-  // После входа в Яндекс-паспорт кнопка профиля появляется на jobs.yandex.ru
   yandex_careers: '.user-account, [data-bem*="user"], .home-arrow__user, .UserAvatar',
+  getmatch: 'a[href*="/profile"], [class*="header_user"], [class*="userMenu"], .b-header__user',
 };
 
 const platformId = process.argv[2];
