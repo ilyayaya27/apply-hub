@@ -13,7 +13,7 @@
  * Login-once: node platforms/apply/login-once.js getmatch
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -50,7 +50,7 @@ async function scrapeVacancies(page, limit = 20) {
   return links.slice(0, limit);
 }
 
-async function applyWizard(page, url) {
+async function applyWizard(page, url, letter) {
   await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
   await page.waitForTimeout(3000);
 
@@ -60,86 +60,72 @@ async function applyWizard(page, url) {
   }
 
   await applyBtn.click();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(2500);
 
   const modalVisible = await page.locator('.b-apply-modal').isVisible().catch(() => false);
   if (!modalVisible) return { ok: false, status: 'no_modal' };
 
-  // Step 1: format — prefer remote
-  const formatCards = page.locator('.b-apply-modal__choice-card');
-  const formatCount = await formatCards.count();
-  if (formatCount > 0) {
-    let clicked = false;
-    for (let i = 0; i < formatCount; i++) {
-      const text = await formatCards.nth(i).innerText();
-      if (/удалён/i.test(text)) { await formatCards.nth(i).click(); clicked = true; break; }
-    }
-    if (!clicked) await formatCards.first().click();
-    await page.waitForTimeout(400);
-    await page.locator('.b-apply-modal button.g-btn-primary').click();
-    await page.waitForTimeout(1500);
-  }
+  // Detect flow: logged-in shows .b-apply-vacancy-info form; anonymous shows wizard cards
+  const isLoggedIn = await page.locator('.b-apply-vacancy-info').isVisible().catch(() => false);
 
-  // Step 2: specialization — click JS/TS tag
-  const jsTags = page.locator('.b-apply-modal .tag_tagComponent___q5kb');
-  const tagCount = await jsTags.count();
-  if (tagCount > 0) {
-    let clicked = false;
-    for (let i = 0; i < tagCount; i++) {
-      const text = await jsTags.nth(i).innerText();
-      if (/javascript|typescript|frontend/i.test(text)) {
-        await jsTags.nth(i).click(); clicked = true; break;
+  if (!isLoggedIn) {
+    // Anonymous wizard: step 1 format
+    const formatCards = page.locator('.b-apply-modal__choice-card');
+    if (await formatCards.count() > 0) {
+      for (let i = 0; i < await formatCards.count(); i++) {
+        if (/удалён/i.test(await formatCards.nth(i).innerText())) {
+          await formatCards.nth(i).click(); break;
+        }
       }
+      await page.locator('.b-apply-modal button.g-btn-primary').click();
+      await page.waitForTimeout(1500);
     }
-    if (!clicked) await jsTags.first().click();
-    await page.waitForTimeout(400);
-    await page.locator('.b-apply-modal button.g-btn-primary').click();
+    // Step 2: specialty
+    const tags = page.locator('.b-apply-modal .tag_tagComponent___q5kb');
+    if (await tags.count() > 0) {
+      for (let i = 0; i < await tags.count(); i++) {
+        if (/javascript|typescript/i.test(await tags.nth(i).innerText())) {
+          await tags.nth(i).click(); break;
+        }
+      }
+      await page.locator('.b-apply-modal button.g-btn-primary').click();
+      await page.waitForTimeout(1500);
+    }
+    // Step 3: salary
+    await page.evaluate(() => { document.querySelector('input[value="salary_200_plus"]')?.click(); });
+    await page.locator('.b-apply-modal button.g-btn-primary').click().catch(() => {});
     await page.waitForTimeout(1500);
+    // Step 4: email
+    const emailInput = page.locator('#apply-login');
+    if (await emailInput.isVisible().catch(() => false)) {
+      return { ok: false, status: 'needs_login', note: 'run: node login-once.js getmatch' };
+    }
   }
 
-  // Step 3: salary — 200k+
-  const salaryRadio = page.locator('input[value="salary_200_plus"]');
-  if (await salaryRadio.count() > 0) {
-    await page.evaluate(() => {
-      const r = document.querySelector('input[value="salary_200_plus"]');
-      if (r) r.click();
-    });
-    await page.waitForTimeout(400);
-    await page.locator('.b-apply-modal button.g-btn-primary').click();
-    await page.waitForTimeout(1500);
-  }
-
-  // Step 4: email — only if not already logged in (session skips this)
-  const emailInput = page.locator('#apply-login');
-  if (await emailInput.isVisible().catch(() => false)) {
-    // If we see email step with session, something is wrong — needs login
-    return { ok: false, status: 'needs_login', note: 'run: node login-once.js getmatch' };
-  }
-
-  // Step 5+: name / telegram if shown
-  const nameInput = page.locator('.b-apply-modal input[placeholder*="мя"], .b-apply-modal input[name*="name"]');
-  if (await nameInput.isVisible().catch(() => false)) {
-    await nameInput.fill('Илья Зуев');
+  // Logged-in form: fill salary + cover letter, then submit
+  const salaryInput = page.locator('#apply_vacancy_info_salary_from');
+  if (await salaryInput.isVisible().catch(() => false)) {
+    await salaryInput.fill('200000');
     await page.waitForTimeout(300);
-    await page.locator('.b-apply-modal button.g-btn-primary').click();
-    await page.waitForTimeout(1500);
   }
 
-  // Check for success
-  const success = await page.evaluate(() => {
-    const m = document.querySelector('.b-apply-modal');
-    return m ? m.innerText : '';
-  });
-
-  if (/успешно|отклик.*отправ|спасиб/i.test(success)) {
-    return { ok: true, status: 'applied' };
+  const coverLetter = page.locator('textarea[name="cover_letter"]');
+  if (await coverLetter.isVisible().catch(() => false) && letter) {
+    await coverLetter.fill(letter);
+    await page.waitForTimeout(300);
   }
 
-  // Modal gone = likely submitted
+  // Submit
+  await page.locator('.b-apply-modal button[type="submit"], .b-apply-modal .apply-button').click();
+  await page.waitForTimeout(2500);
+
+  // Check result
+  const modalText = await page.evaluate(() => document.querySelector('.b-apply-modal')?.innerText ?? '');
+  if (/успешно|отправ|принят|спасиб/i.test(modalText)) return { ok: true, status: 'applied' };
   const modalGone = !(await page.locator('.b-apply-modal').isVisible().catch(() => false));
   if (modalGone) return { ok: true, status: 'applied' };
 
-  return { ok: false, status: 'incomplete', note: success.slice(0, 100) };
+  return { ok: false, status: 'incomplete', note: modalText.slice(0, 120) };
 }
 
 export async function runGetmatch({ limit = 10 } = {}) {
@@ -147,6 +133,11 @@ export async function runGetmatch({ limit = 10 } = {}) {
   if (!session) {
     console.warn('[getmatch] No session — run: node platforms/apply/login-once.js getmatch');
   }
+
+  // Load cover letter from project root
+  const ROOT = join(__dirname, '..', '..', '..');
+  const letterPath = join(ROOT, 'letter.txt');
+  const letter = existsSync(letterPath) ? readFileSync(letterPath, 'utf8').trim() : '';
 
   const state = loadState();
   const browser = await chromium.launch({
@@ -186,7 +177,7 @@ export async function runGetmatch({ limit = 10 } = {}) {
     }
 
     try {
-      const result = await applyWizard(page, url);
+      const result = await applyWizard(page, url, letter);
       results.push({ url, ...result });
       if (result.ok) {
         state.applied[key] = { appliedAt: new Date().toISOString(), status: 'applied', url };
