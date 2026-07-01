@@ -1,9 +1,12 @@
 Добрый день!
 
-Меня зовут Илья, frontend-разработчик, 5+ лет. Последние проекты — tier-1 retail bank (FinTech, contact-center automation, WebSocket-дашборды, Next.js SSR) и Evrone (e-commerce, SaaS, UI-kit в npm, Feature-Sliced Design).
+Меня зовут Илья Зуев, frontend-разработчик с 5+ годами опыта.
 
-Сильные стороны: React 18, TypeScript, Next.js, Redux Toolkit, тесты (Jest, RTL), CI/CD, метрики в проде (Lighthouse 55→85+, покрытие тестами до 65 процентов).
+Последние 2,5 года — Альфа-Банк: визуальный редактор сценариев ботов для контакт-центра (React 18, Next.js 14 SSR, WebSocket, Redux Toolkit). До этого — Evrone: e-commerce маркетплейс, SaaS-продукты, UI-kit из 30+ компонентов в npm на Tailwind/shadcn/ui.
 
-Сейчас в активном поиске. Готов пообщаться в ближайшие дни.
+Стек: React, TypeScript, Next.js, Redux Toolkit, Jest/RTL, CI/CD, Feature-Sliced Design.
+Метрики: Lighthouse 55→85+, покрытие тестами до 65%, initial JS −30% через route-based splitting.
+
+Рассматриваю удалёнку и гибрид. Готов к короткому тестовому. Выйти могу сразу.
 
 Telegram: @ilyayaya27

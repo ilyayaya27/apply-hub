@@ -2,8 +2,8 @@
 active_market: ru
 role: Frontend Developer
 # Имя для форм: кириллица для RU-рынка, латиница для EN (LinkedIn / career forms)
-name_ru: Илья Силкин
-name_en: Ilya Silkin
+name_ru: Илья Зуев
+name_en: Ilya Zuev
 location: Berlin
 markets:
   - ru_remote
