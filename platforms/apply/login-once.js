@@ -21,7 +21,7 @@ const LOGIN_URLS = {
 };
 
 const LOGIN_DONE_SELECTORS = {
-  djinni: '[data-name="user-menu"], .bi-person-circle, .navbar-user',
+  djinni: 'a[href="/my/inbox/"], .navbar-user, [data-name="user-menu"], .bi-person-circle',
   habr_career: '.profile-avatar, .account__username, [data-user]',
   // После входа в Яндекс-паспорт кнопка профиля появляется на jobs.yandex.ru
   yandex_careers: '.user-account, [data-bem*="user"], .home-arrow__user, .UserAvatar',

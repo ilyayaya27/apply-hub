@@ -110,15 +110,21 @@ export const PLATFORM_SPECS = {
   },
 
   djinni: {
+    formless: true,
+    pageSettleMs: 4_000,
     applyButtonSelectors: [
+      'button:has-text("Apply")',
+      'button:has-text("Відгукнутись")',
+      'button:has-text("Відгукнутися")',
       'a:has-text("Apply")',
-      'a:has-text("Откликнуться")',
-      '.job-apply-button',
-      '[data-testid="apply-button"]',
     ],
-    waitFor: 'form, .application-form, textarea',
-    submitSelectors: ['button[type="submit"]', 'input[type="submit"]'],
-    allowAutoSubmit: false,
+    waitFor: 'textarea, .modal textarea, [class*="cover"]',
+    submitSelectors: [
+      'button:has-text("Send")',
+      'button:has-text("Надіслати")',
+      'button[type="submit"]',
+    ],
+    allowAutoSubmit: true,
   },
 
   getmatch: {
