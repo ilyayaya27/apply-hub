@@ -10,6 +10,7 @@ import { applyViaForm } from './workers/form-apply.js';
 import { applyRvcGlobal } from './workers/rvc-global.js';
 import { runGetmatch } from './workers/getmatch.js';
 import { runHnHiring } from './workers/hn-hiring.js';
+import { runWellfound } from './workers/wellfound.js';
 import { CAREER_SMOKE_PROBES } from './lib/career-smoke-probes.js';
 import { careerPlatformId } from './adapters/platforms/hosts.js';
 
@@ -86,6 +87,13 @@ if (cmd === 'rvc-global-apply') {
 if (cmd === 'getmatch-apply') {
   const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 10);
   const out = await runGetmatch({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'wellfound-apply') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 10);
+  const out = await runWellfound({ limit });
   console.log(JSON.stringify(out, null, 2));
   process.exit(out.ok ? 0 : 1);
 }

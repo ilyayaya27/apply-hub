@@ -20,6 +20,8 @@ const LOGIN_URLS = {
   yandex_careers: 'https://passport.yandex.ru/auth',
   // GetMatch: кандидат логинится через vizard — открываем вакансию и ждём завершения
   getmatch: 'https://getmatch.ru/vacancies/34858-kh5-media-nanimaet-postroim-reklamnuiu-platformu',
+  // Wellfound (ex-AngelList): стартап-борд — логин через email/Google
+  wellfound: 'https://wellfound.com/login',
 };
 
 const LOGIN_DONE_SELECTORS = {
@@ -28,6 +30,8 @@ const LOGIN_DONE_SELECTORS = {
   yandex_careers: '.user-account, [data-bem*="user"], .home-arrow__user, .UserAvatar',
   // GetMatch: после подтверждения email модалка исчезает
   getmatch: 'body:not(:has(.b-apply-modal))',
+  // Wellfound: после логина показывает дашборд с аватаром / именем
+  wellfound: '[data-test="user-menu"], [class*=UserAvatar], [class*=user-avatar], nav [class*=avatar]',
 };
 
 const platformId = process.argv[2];
