@@ -18,14 +18,16 @@ const LOGIN_URLS = {
   djinni: 'https://djinni.co/login',
   habr_career: 'https://career.habr.com/users/sign_in',
   yandex_careers: 'https://passport.yandex.ru/auth',
-  getmatch: 'https://getmatch.ru/login',
+  // GetMatch: кандидат логинится через vizard — открываем вакансию и ждём завершения
+  getmatch: 'https://getmatch.ru/vacancies/34858-kh5-media-nanimaet-postroim-reklamnuiu-platformu',
 };
 
 const LOGIN_DONE_SELECTORS = {
   djinni: 'a[href="/my/inbox/"], .navbar-user, [data-name="user-menu"], .bi-person-circle',
   habr_career: '.profile-avatar, .account__username, [data-user]',
   yandex_careers: '.user-account, [data-bem*="user"], .home-arrow__user, .UserAvatar',
-  getmatch: 'a[href*="/profile"], [class*="header_user"], [class*="userMenu"], .b-header__user',
+  // GetMatch: после подтверждения email модалка исчезает
+  getmatch: 'body:not(:has(.b-apply-modal))',
 };
 
 const platformId = process.argv[2];
@@ -49,9 +51,40 @@ const context = await browser.newContext({
 const page = await context.newPage();
 await page.goto(LOGIN_URLS[platformId]);
 
-// Для Яндекса: после входа через паспорт нужно перейти на jobs чтобы сохранить сессию с jobs-куками
 if (platformId === 'yandex_careers') {
   console.log('[login-once] После входа откроется yandex.ru/jobs — дождитесь загрузки...');
+}
+
+// GetMatch: автоматически проходим шаги 1-3, потом ждём email + код от пользователя
+if (platformId === 'getmatch') {
+  console.log('[login-once] Открываю GetMatch вакансию — нажимаю Откликнуться...');
+  await page.waitForTimeout(4000);
+  await page.click('button:has-text("Откликнуться")').catch(() => {});
+  await page.waitForTimeout(2000);
+  // Step 1: format
+  const cards = page.locator('.b-apply-modal__choice-card');
+  if (await cards.count() > 0) {
+    for (let i = 0; i < await cards.count(); i++) {
+      if (/удалён/i.test(await cards.nth(i).innerText())) { await cards.nth(i).click(); break; }
+    }
+    await page.locator('.b-apply-modal button.g-btn-primary').click();
+    await page.waitForTimeout(1500);
+  }
+  // Step 2: specialty
+  const tags = page.locator('.b-apply-modal .tag_tagComponent___q5kb');
+  if (await tags.count() > 0) {
+    for (let i = 0; i < await tags.count(); i++) {
+      if (/javascript/i.test(await tags.nth(i).innerText())) { await tags.nth(i).click(); break; }
+    }
+    await page.locator('.b-apply-modal button.g-btn-primary').click();
+    await page.waitForTimeout(1500);
+  }
+  // Step 3: salary
+  await page.evaluate(() => { const r = document.querySelector('input[value="salary_200_plus"]'); if (r) r.click(); });
+  await page.waitForTimeout(400);
+  await page.locator('.b-apply-modal button.g-btn-primary').click().catch(() => {});
+  await page.waitForTimeout(1500);
+  console.log('[login-once] Шаги 1-3 пройдены. Введите email в браузере и подтвердите код из письма.');
 }
 
 try {
