@@ -5,7 +5,7 @@
 Последние 2,5 года — Альфа-Банк: визуальный редактор сценариев ботов для контакт-центра (React 18, Next.js 14 SSR, WebSocket, Redux Toolkit). До этого — Evrone: e-commerce маркетплейс, SaaS-продукты, UI-kit из 30+ компонентов в npm на Tailwind/shadcn/ui.
 
 Стек: React, TypeScript, Next.js, Redux Toolkit, Jest/RTL, CI/CD, Feature-Sliced Design.
-Метрики: Lighthouse 55→85+, покрытие тестами до 65%, initial JS −30% через route-based splitting.
+Метрики: Lighthouse 55→85+, покрытие тестами до 65%%, initial JS −30%% через route-based splitting.
 
 Рассматриваю удалёнку и гибрид. Готов к короткому тестовому. Выйти могу сразу.
 
