@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0",
+    "imapflow": "^1.4.3",
     "nodemailer": "^6.10.0",
     "telegram": "^2.26.22"
   },

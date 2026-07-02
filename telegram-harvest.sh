@@ -25,4 +25,11 @@ if [[ ! -f "$TG/src/config/channels.json" ]]; then
 fi
 
 mkdir -p "$TG/logs"
-exec bun run harvest "$@"
+
+# systemd services don't have ~/.bun/bin in PATH
+BUN="$(command -v bun || echo "$HOME/.bun/bin/bun")"
+if [[ ! -x "$BUN" ]]; then
+  echo "❌ bun не найден ни в PATH, ни в ~/.bun/bin"
+  exit 1
+fi
+exec "$BUN" run harvest "$@"

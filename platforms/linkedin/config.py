@@ -19,7 +19,7 @@ chromeProfilePath = r"data/chrome-bot-profile/Default"
 # These settings are for running Linkedin job apply bot.
 # location you want to search the jobs - ex : ["Poland", "Singapore", "New York City Metropolitan Area", "Monroe County"]
 # continent locations:["Europe", "Asia", "Australia", "NorthAmerica", "SouthAmerica", "Africa", "Australia"]
-location = ["Berlin, Germany", "Germany", "Europe"]
+location = ["Worldwide"]
 # keywords related with your job search
 keywords = [
     "frontend",
@@ -154,10 +154,10 @@ connectEnabled = True
 # Easy Apply: spread across work-day cycles (li-worker)
 maxApplicationsPerDay = 15
 maxApplicationsPerRun = 3
-# Connect: LinkedIn ~20/week; spread evenly by day (see quotas.spread_connect_budget)
-maxConnectsPerWeek = 20
-maxConnectsPerDay = 4
-maxConnectsPerRun = 2
+# Connect: LinkedIn ~100/week hard cap; keep well under to avoid restrictions
+maxConnectsPerWeek = 40
+maxConnectsPerDay = 8
+maxConnectsPerRun = 3
 orchestratorCycleMinutes = 60
 workHourStart = 9
 workHourEnd = 20
@@ -165,16 +165,18 @@ workHourEnd = 20
 # Connect settings
 connectDryRun = False
 connectNote = (
-    "Hi! I'm Ilya — frontend engineer in Berlin, 5+ years with React, "
-    "TypeScript and Next.js (FinTech & SaaS). Open to remote roles in the EU. "
+    "Hi! I'm Ilya — frontend engineer, 5+ years with React, "
+    "TypeScript and Next.js (FinTech & SaaS). Open to remote roles worldwide. "
     "Would love to connect!"
 )
 connectKeywords = [
     "frontend recruiter",
-    "technical recruiter berlin",
+    "technical recruiter",
     "talent acquisition engineer",
+    "tech recruiter remote",
+    "IT recruiter",
 ]
-connectLocations = ["Berlin, Germany", "Germany"]
+connectLocations = ["Worldwide"]
 
 try:
     from config_secrets import email as _email, password as _password  # noqa: F401

@@ -1,0 +1,117 @@
+/**
+ * Авторазбор ручной очереди (needs_human) — цель: ноль ручной работы.
+ *
+ * 1. Чужие #резюме-посты → status 'skipped' (мусор из харвеста)
+ * 2. Реальные вакансии: достаём контакт (regex + LLM fallback через OpenRouter)
+ *    → email найден  → route 'email', обратно в очередь (авто-отправка)
+ *    → career-URL    → route 'form', обратно в очередь
+ *    → t.me/@username → route 'telegram' + status queued (DM-воркер)
+ * 3. Контакта нет → 'skipped' (no_contact)
+ *
+ * Run: node cli.js triage [--dry-run]
+ */
+import { config } from '../lib/config.js';
+import { getDb } from '../lib/db.js';
+import { isCandidateResumePost } from '../lib/resume-post.js';
+import { classifyApplyRoute } from '../lib/router.js';
+
+const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+const TG_USER_RE = /(?:https?:\/\/)?t\.me\/([\w]{4,32})|(?<![/\w])@([\w]{4,32})/i;
+
+async function llmExtractContact(rawText) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
+  if (!apiKey) return null;
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        temperature: 0,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Ты извлекаешь контакты для отклика из текста вакансии. ' +
+              'Верни JSON: {"is_vacancy": bool, "email": string|null, "telegram": string|null (username без @), ' +
+              '"apply_url": string|null, "company": string|null, "role": string|null}. ' +
+              'is_vacancy=false если это резюме кандидата, а не вакансия работодателя.',
+          },
+          { role: 'user', content: rawText.slice(0, 3000) },
+        ],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return JSON.parse(data.choices?.[0]?.message?.content ?? 'null');
+  } catch {
+    return null;
+  }
+}
+
+export async function runTriage({ dryRun = false } = {}) {
+  const db = getDb(config.dbPath);
+  const rows = db
+    .prepare(`SELECT id, route, url, title, company, raw_text FROM vacancies WHERE status = 'needs_human'`)
+    .all();
+
+  const setStatus = db.prepare(
+    `UPDATE vacancies SET status = ?, route = ?, url = COALESCE(?, url), updated_at = datetime('now') WHERE id = ?`,
+  );
+
+  const out = { total: rows.length, resumeSkipped: 0, requeued: [], noContact: 0, llmCalls: 0 };
+
+  for (const row of rows) {
+    const text = row.raw_text ?? '';
+
+    // 1. Чужие резюме — в архив
+    if (isCandidateResumePost(text)) {
+      out.resumeSkipped++;
+      if (!dryRun) setStatus.run('skipped', row.route, null, row.id);
+      continue;
+    }
+
+    // 2. Существующий классификатор мог уже знать маршрут (например form по URL)
+    const { route: reRoute, primaryUrl } = classifyApplyRoute({ text, links: row.url ? [row.url] : [] });
+
+    let target = null;
+    if (reRoute === 'email' || (EMAIL_RE.test(text) && reRoute !== 'hh' && reRoute !== 'linkedin')) {
+      target = { route: 'email', url: primaryUrl ?? row.url };
+    } else if (reRoute === 'form') {
+      target = { route: 'form', url: primaryUrl ?? row.url };
+    } else if (reRoute === 'telegram' || TG_USER_RE.test(text)) {
+      target = { route: 'telegram', url: primaryUrl ?? row.url };
+    }
+
+    // 3. LLM fallback — когда regex ничего не дал
+    if (!target) {
+      out.llmCalls++;
+      const ai = await llmExtractContact(text);
+      if (ai && ai.is_vacancy === false) {
+        out.resumeSkipped++;
+        if (!dryRun) setStatus.run('skipped', row.route, null, row.id);
+        continue;
+      }
+      if (ai?.email) target = { route: 'email', url: `mailto:${ai.email}` };
+      else if (ai?.apply_url) target = { route: 'form', url: ai.apply_url };
+      else if (ai?.telegram) target = { route: 'telegram', url: `https://t.me/${ai.telegram}` };
+    }
+
+    if (target) {
+      out.requeued.push({ id: row.id, route: target.route, url: target.url });
+      console.log(`[triage] requeue ${row.id} → ${target.route} (${(target.url ?? '').slice(0, 60)})`);
+      if (!dryRun) setStatus.run('queued', target.route, target.url, row.id);
+    } else {
+      out.noContact++;
+      if (!dryRun) setStatus.run('skipped', row.route, null, row.id);
+    }
+  }
+
+  console.log(
+    `[triage] done: total=${out.total} resume_skipped=${out.resumeSkipped} requeued=${out.requeued.length} no_contact=${out.noContact} llm=${out.llmCalls}${dryRun ? ' [dry-run]' : ''}`,
+  );
+  return { ok: true, ...out };
+}

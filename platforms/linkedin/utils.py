@@ -223,6 +223,8 @@ class LinkedinUrlGenerate:
     def checkJobLocation(self, job: str) -> str:
         jobLoc = "&location=" +job
         match job.casefold():
+            case "worldwide":
+                jobLoc += "&geoId=92000000"
             case "asia":
                 jobLoc += "&geoId=102393603"
             case "europe":

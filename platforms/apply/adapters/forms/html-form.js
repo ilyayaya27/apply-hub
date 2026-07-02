@@ -5,6 +5,7 @@ import { matchFieldKey, valueForFieldKey } from '../../lib/form-field-hints.js';
 import { normalizeFormProfile } from '../../lib/form-profile.js';
 import { config } from '../../lib/config.js';
 import { getMarketAssets } from '../../lib/profile.js';
+import { enrichPlanWithAiAnswers } from '../../lib/ai-screening.js';
 
 /**
  * @param {string} name
@@ -269,6 +270,8 @@ export const applyHtmlForm = async (vacancy, { profile, letter }) => {
   if (!plan.ok) {
     return { ok: false, status: 'needs_human', error: plan.reason ?? 'no_form', adapter: 'html-form' };
   }
+
+  await enrichPlanWithAiAnswers(plan, vacancy, profile, letter);
 
   if (!config.playwrightEnabled) {
     return {

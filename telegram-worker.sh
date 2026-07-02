@@ -49,6 +49,11 @@ while true; do
     log "=== cycle start ==="
     if "$ROOT/telegram-harvest.sh"; then
       log "=== harvest OK ==="
+      if node "$APPLY/cli.js" triage >>"$LOG" 2>&1; then
+        log "Triage OK (needs_human разобрана)"
+      else
+        log "WARN: triage failed (см. $LOG)"
+      fi
       if node "$APPLY/cli.js" notify-harvest-digest 2>>"$LOG"; then
         log "Human digest notify sent (or skipped)"
       else

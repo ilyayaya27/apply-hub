@@ -23,7 +23,7 @@ Stdout: JSON `{ ok, status, adapter, note, plan?, error? }`.
 |---|-------------|-----------|-----------|--------|-------|
 | 1 | `vk_careers` | https://internship.vk.company/vacancy/1374 | ✅ | — | smoke 2026-06 |
 | 2 | `rwb_careers` | https://career.rwb.ru/vacancies/25895 | ✅ | — | 6 полей + resume; phone пустой — проверить профиль |
-| 3 | `yandex_careers` | https://yandex.ru/jobs/vacancies/razrabotchik-frontenda-v-direkt-45243 | ❌ | — | требует Яндекс-авторизацию — `login-once yandex_careers`, потом smoke |
+| 3 | `yandex_careers` | https://yandex.ru/jobs/vacancies/razrabotchik-interfeysov-v-datalens-17333 | ✅ | ✅ | smoke 2026-07-02: 4 поля + resume, сессия login-once; старый probe URL протух (нет кнопки отклика) |
 | 4 | `ozon_careers` | https://career.ozon.ru/vacancy/ml-inzhener-133392771 | ✅ | — | smoke 2026-06: formless, 4 поля + resume; headless OK |
 | 5 | `avito_careers` | https://career.avito.com/vacancies/razrabotka/19604/ | ✅ | — | 13 полей + resume; Bitrix форма, CORP_RU; `allowAutoSubmit: true` |
 | 6 | `sber_careers` | https://rabota.sber.ru/search/frontend-razrabotchik-react-4508788/ | ✅ | — | formless + pageSettleMs 8s; 4 поля + resume; `allowAutoSubmit: false` — проверить headed |
