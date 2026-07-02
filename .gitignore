@@ -104,6 +104,7 @@ logs/
 platforms/telegram/node_modules/
 platforms/telegram/.env
 platforms/telegram/.telegram_session
+platforms/telegram/.telegram_session_work
 platforms/telegram/.seen_store.json
 platforms/telegram/src/config/channels.json
 platforms/telegram/logs/

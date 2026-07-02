@@ -12,6 +12,7 @@ import { runGetmatch } from './workers/getmatch.js';
 import { runHnHiring } from './workers/hn-hiring.js';
 import { runWellfound } from './workers/wellfound.js';
 import { runItptitsa } from './workers/itptitsa.js';
+import { runItptitsaShare } from './workers/itptitsa-share.js';
 import { CAREER_SMOKE_PROBES } from './lib/career-smoke-probes.js';
 import { careerPlatformId } from './adapters/platforms/hosts.js';
 
@@ -103,6 +104,13 @@ if (cmd === 'hn-apply') {
   const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
   const dryRun = process.argv.includes('--dry-run') || process.env.APPLY_DRY_RUN === '1';
   const out = await runHnHiring({ limit, dryRun });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'itptitsa-share') {
+  const dryRun = process.argv.includes('--dry-run') || process.env.APPLY_DRY_RUN === '1';
+  const out = await runItptitsaShare({ dryRun });
   console.log(JSON.stringify(out, null, 2));
   process.exit(out.ok ? 0 : 1);
 }

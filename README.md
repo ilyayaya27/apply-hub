@@ -218,7 +218,36 @@ journalctl --user -u getmatch-worker.service
 
 ---
 
-### 7. rvc.global — встроено в `platforms/apply/`
+### 7. IT-Птица — `itptitsa-worker.timer` + `itptitsa-share.timer`
+
+**Что делает (два воркера):**
+
+**`itptitsa-process`** — мониторит топик "Контакты HR и Вакансии" (topic_id=33) в закрытой Telegram-группе IT-Птица. Извлекает HH.ru-ссылки (→ очередь откликов) и @username HR-ов (→ DM с резюме + реакция 👍). Лимит: 5 DM/день.
+
+**`itptitsa-share`** — читает HR-переписки второго аккаунта (`@ilyailyailya27`), фильтрует свежие контакты (≤7 дней), пропускает закрытые вакансии и гео-отказы (РФ/РБ/локальные офисы), постит сводку одним сообщением в тот же топик от первого аккаунта.
+
+**Сессии:** `platforms/telegram/.telegram_session` (основной) и `platforms/telegram/.telegram_session_work` (второй аккаунт). Второй залогинен через QR:
+```bash
+node platforms/telegram/login-second-account.mjs
+```
+
+**Расписание:**
+- `itptitsa-worker.timer` — ежедневно 11:00
+- `itptitsa-share.timer` — ежедневно 12:00
+
+```bash
+systemctl --user status itptitsa-worker.timer
+systemctl --user status itptitsa-share.timer
+journalctl --user -u itptitsa-share.service
+```
+
+**State:**
+- `platforms/apply/data/itptitsa-state.json` — обработанные сообщения, отправленные DM
+- `platforms/apply/data/itptitsa-share-state.json` — запощенные контакты (чтобы не дублировать)
+
+---
+
+### 8. rvc.global — встроено в `platforms/apply/`
 
 **Что делает:** Читает список matched-вакансий через JWT API (`https://api.rvc.global`), извлекает apply-ссылки из описаний, роутит на career-адаптеры, сохраняет state чтобы не дублировать.
 
@@ -398,6 +427,8 @@ platforms/rvc/data/
 | rvc.global | `rvc-global-worker.timer` | каждые 6ч | ✅ работает |
 | **GetMatch** | `getmatch-worker.timer` | каждые 6ч | ✅ работает (сессия: login-once) |
 | **HN Hiring** | `hn-hiring-worker.timer` | ежедневно 10:00 | ✅ работает (26 откликов 1 июля) |
+| **IT-Птица DM** | `itptitsa-worker.timer` | ежедневно 11:00 | ✅ работает (5 DM/день, реакции 👍) |
+| **IT-Птица Share** | `itptitsa-share.timer` | ежедневно 12:00 | ✅ работает (2й аккаунт → топик) |
 | Wellfound | `cli.js wellfound-apply` | вручную | ⚠️ DataDome (применять руками) |
 | career-сайты | `cli.js career-smoke` | по запросу | ✅ RWB, Beeline, VK, Sber, Ozon, Облако.ру |
 
