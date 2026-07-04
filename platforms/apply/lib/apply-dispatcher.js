@@ -14,6 +14,9 @@ import {
 import { applyViaForm } from '../workers/form-apply.js';
 import { applyViaEmail } from '../workers/email-apply.js';
 import { sendTelegramNotify, formatApplyNotify } from './notify-telegram.js';
+import { resolveLetter } from './letter-llm.js';
+import { loadProfile } from './profile.js';
+import { loadCoverLetter } from './letter.js';
 
 const AUTO_ROUTES = new Set(['form', 'email']);
 
@@ -53,9 +56,22 @@ export async function dispatchApply(vacancy) {
 
   await randomDelay();
 
+  // Письмо резолвим централизованно (static/llm/ab) и прокидываем в адаптер,
+  // чтобы записать использованный вариант для A/B по reply-rate.
+  let letterVariant = 'static';
+  let ctx;
+  try {
+    const profile = loadProfile();
+    const resolved = await resolveLetter({ vacancy, profile, baseLetter: loadCoverLetter() });
+    letterVariant = resolved.variant;
+    ctx = { profile, letter: resolved.text };
+  } catch {
+    ctx = undefined; // адаптер сам загрузит базовое письмо
+  }
+
   let result;
-  if (vacancy.route === 'form') result = await applyViaForm(vacancy);
-  else if (vacancy.route === 'email') result = await applyViaEmail(vacancy);
+  if (vacancy.route === 'form') result = await applyViaForm(vacancy, ctx);
+  else if (vacancy.route === 'email') result = await applyViaEmail(vacancy, ctx);
   else {
     markNeedsHuman(vacancy.key, `unsupported ${vacancy.route}`);
     return { ok: false, status: 'needs_human' };
@@ -67,7 +83,7 @@ export async function dispatchApply(vacancy) {
   }
 
   if (result.ok) {
-    markApplied(vacancy.key, { method: vacancy.route, note: result.note });
+    markApplied(vacancy.key, { method: vacancy.route, note: result.note, letterVariant });
     await sendTelegramNotify(
       formatApplyNotify({ title: vacancy.title, route: vacancy.route, ok: true, note: result.note }),
       { kind: 'applied' },

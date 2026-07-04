@@ -6,7 +6,7 @@
 
 import { config } from './config.js';
 
-function buildAiConfig() {
+export function buildAiConfig() {
   if (config.openrouterApiKey) {
     return {
       apiKey: config.openrouterApiKey,

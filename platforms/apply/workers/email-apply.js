@@ -3,7 +3,7 @@ import { config } from '../lib/config.js';
 import { loadCoverLetter } from '../lib/letter.js';
 import { loadProfile, getMarketAssets } from '../lib/profile.js';
 
-export async function applyViaEmail(vacancy) {
+export async function applyViaEmail(vacancy, ctx = {}) {
   const to = vacancy.primaryUrl ?? vacancy.url;
   if (!to || !to.includes('@')) {
     return { ok: false, status: 'failed', error: 'invalid_email' };
@@ -27,8 +27,8 @@ export async function applyViaEmail(vacancy) {
     };
   }
 
-  const letter = loadCoverLetter();
-  const profile = loadProfile();
+  const letter = ctx.letter ?? loadCoverLetter();
+  const profile = ctx.profile ?? loadProfile();
   const subject = `Отклик: ${vacancy.title ?? 'Frontend Developer'} — Ilya Silkin`;
 
   try {

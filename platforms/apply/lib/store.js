@@ -248,6 +248,7 @@ export function releaseProcessing(key, status = 'queued') {
 export const markApplied = (key, noteOrMeta = '', methodArg = 'manual') => {
   let note = '';
   let method = methodArg;
+  let letterVariant = null;
   if (
     noteOrMeta &&
     typeof noteOrMeta === 'object' &&
@@ -255,6 +256,7 @@ export const markApplied = (key, noteOrMeta = '', methodArg = 'manual') => {
   ) {
     note = noteOrMeta.note ?? '';
     method = noteOrMeta.method ?? methodArg;
+    letterVariant = noteOrMeta.letterVariant ?? null;
   } else {
     note = String(noteOrMeta ?? '');
   }
@@ -264,9 +266,9 @@ export const markApplied = (key, noteOrMeta = '', methodArg = 'manual') => {
     .run(key);
   db()
     .prepare(
-      `INSERT INTO applications (vacancy_id, method, note) VALUES (?, ?, ?)`,
+      `INSERT INTO applications (vacancy_id, method, note, letter_variant) VALUES (?, ?, ?, ?)`,
     )
-    .run(key, method, note);
+    .run(key, method, note, letterVariant);
 };
 
 export function markFailed(key, error, method = 'auto') {

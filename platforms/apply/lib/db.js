@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS applications (
   method TEXT,
   note TEXT,
   error TEXT,
+  letter_variant TEXT,
   FOREIGN KEY (vacancy_id) REFERENCES vacancies(id)
 );
 
@@ -66,9 +67,19 @@ export function getDb(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(SCHEMA);
+  migrate(db);
   dbInstance = db;
   dbPathUsed = dbPath;
   return db;
+}
+
+/** Идемпотентные ALTER для колонок, добавленных после создания таблиц. */
+function migrate(db) {
+  try {
+    db.exec(`ALTER TABLE applications ADD COLUMN letter_variant TEXT`);
+  } catch {
+    // колонка уже есть — ок
+  }
 }
 
 export function resetDbForTests() {

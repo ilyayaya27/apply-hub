@@ -70,6 +70,33 @@ export function buildFunnelReport() {
     )
     .all();
 
+  // A/B по вариантам письма: сколько отправлено и сколько ответили на каждый.
+  const abApplied = db
+    .prepare(
+      `SELECT COALESCE(letter_variant, 'static') AS variant, COUNT(*) AS c
+       FROM applications WHERE ${APPLIED_FILTER} GROUP BY variant`,
+    )
+    .all();
+  const abReplies = db
+    .prepare(
+      `SELECT COALESCE(a.letter_variant, 'static') AS variant, COUNT(DISTINCT r.uid) AS c
+       FROM email_replies r
+       JOIN applications a ON a.vacancy_id = r.matched_vacancy_id AND a.error IS NULL
+       GROUP BY variant`,
+    )
+    .all();
+  const replyByVariant = Object.fromEntries(abReplies.map((r) => [r.variant, num(r)]));
+  const letterAb = abApplied.map((r) => {
+    const applied = num(r);
+    const replied = replyByVariant[r.variant] ?? 0;
+    return {
+      variant: r.variant,
+      applied,
+      replied,
+      replyRatePct: applied > 0 ? Math.round((replied / applied) * 1000) / 10 : 0,
+    };
+  });
+
   const replyRatePct = applied > 0 ? Math.round((replies / applied) * 1000) / 10 : 0;
 
   return {
@@ -85,6 +112,7 @@ export function buildFunnelReport() {
     },
     byRoute,
     bySource,
+    letterAb,
     recentReplies,
   };
 }
@@ -107,6 +135,13 @@ export function formatFunnelReport(r) {
   lines.push('По источникам (total | applied | replies):');
   for (const x of r.bySource) {
     lines.push(`  ${String(x.source).padEnd(28)} ${x.total} | ${x.applied} | ${x.replies}`);
+  }
+  if (r.letterAb?.length) {
+    lines.push('');
+    lines.push('A/B письма (variant: applied → replied, rate):');
+    for (const x of r.letterAb) {
+      lines.push(`  ${String(x.variant).padEnd(8)} ${x.applied} → ${x.replied} (${x.replyRatePct}%)`);
+    }
   }
   if (r.recentReplies.length) {
     lines.push('');

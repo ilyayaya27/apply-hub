@@ -110,6 +110,8 @@ export const config = {
   groqApiKey: env.GROQ_API_KEY ?? '',
   groqBaseUrl: env.GROQ_BASE_URL ?? 'https://api.groq.com/openai/v1',
   groqModel: env.GROQ_MODEL ?? 'llama3-8b-8192',
+  /** Сопроводительное письмо: static | llm | ab (см. lib/letter-llm.js) */
+  letterMode: (env.LETTER_MODE ?? 'static').toLowerCase(),
   /** preview = t.me/s HTML; gramjs = user session (apply-hub/platforms/telegram) */
   tgIngestMode: (env.TG_INGEST_MODE ?? 'preview').toLowerCase(),
   telegramApiId: num('TELEGRAM_API_ID', 0),
