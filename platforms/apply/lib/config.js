@@ -96,6 +96,12 @@ export const config = {
   playwrightHeadless: bool('PLAYWRIGHT_HEADLESS', true),
   /** true = click Submit on forms; default dry-run (fill only) */
   formSubmit: bool('FORM_SUBMIT', bool('PLAYWRIGHT_SUBMIT', false)),
+  /**
+   * Авто-сабмит НЕизвестных generic-форм (html/google) без пер-платформенной
+   * проверки. По умолчанию false: незнакомую форму только заполняем, не шлём
+   * вслепую реальному работодателю. Career-адаптеры гейтятся своим allowAutoSubmit.
+   */
+  formSubmitGeneric: bool('FORM_SUBMIT_GENERIC', false),
   openrouterApiKey: env.OPENROUTER_API_KEY ?? '',
   openrouterBaseUrl: env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
   openrouterModel: env.OPENROUTER_MODEL ?? 'openai/gpt-4o-mini',

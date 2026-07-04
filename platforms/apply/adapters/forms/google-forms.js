@@ -152,8 +152,10 @@ export const applyGoogleForm = async (vacancy, { profile, letter }) => {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
 
     const { resume_path: resumePath } = getMarketAssets(profile);
+    // Google-форма — тоже generic: без FORM_SUBMIT_GENERIC не шлём вслепую.
+    const submitGeneric = config.formSubmit && config.formSubmitGeneric;
     const result = await runGoogleFormFlow(page, profile, letter, {
-      submit: config.formSubmit,
+      submit: submitGeneric,
       resumePath,
     });
 
@@ -172,9 +174,9 @@ export const applyGoogleForm = async (vacancy, { profile, letter }) => {
     return {
       ok: false,
       status: 'needs_human',
-      error: config.formSubmit
+      error: submitGeneric
         ? 'Google Form: submit не нажат (капча или неизвестная разметка)'
-        : 'FORM_SUBMIT=false — поля заполнены в dry-run, отправка вручную',
+        : 'generic-форма заполнена, авто-отправка выключена (FORM_SUBMIT_GENERIC)',
       adapter: 'google-forms',
       plan: { filled: result.filled, fileFields: result.fileFields },
     };

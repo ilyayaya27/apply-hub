@@ -290,14 +290,16 @@ export const applyHtmlForm = async (vacancy, { profile, letter }) => {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
 
     const { resume_path: resumePath } = getMarketAssets(profile);
+    // Незнакомую generic-форму не сабмитим вслепую — только заполняем (см. formSubmitGeneric).
+    const submitGeneric = config.formSubmit && config.formSubmitGeneric;
     const result = await runHtmlFormFlow(page, plan, {
-      submit: config.formSubmit,
+      submit: submitGeneric,
       resumePath,
     });
 
     await browser.close();
 
-    if (result.submitted && config.formSubmit) {
+    if (result.submitted && submitGeneric) {
       return {
         ok: true,
         status: 'applied',
@@ -309,12 +311,13 @@ export const applyHtmlForm = async (vacancy, { profile, letter }) => {
     }
 
     const filledCount = Object.keys(result.filled ?? {}).length;
-    if (!config.formSubmit && filledCount > 0) {
+    if (!submitGeneric && filledCount > 0) {
+      const reason = !config.formSubmit ? 'FORM_SUBMIT=false' : 'FORM_SUBMIT_GENERIC=false (generic-форма не проверена)';
       return {
         ok: true,
         status: 'fill_only',
         adapter: 'html-form',
-        note: `filled ${filledCount} fields (FORM_SUBMIT=false)`,
+        note: `filled ${filledCount} fields (${reason})`,
         plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
       };
     }
@@ -322,9 +325,9 @@ export const applyHtmlForm = async (vacancy, { profile, letter }) => {
     return {
       ok: false,
       status: 'needs_human',
-      error: config.formSubmit
+      error: submitGeneric
         ? 'HTML form: submit не сработал (капча или неизвестная разметка)'
-        : 'FORM_SUBMIT=false — форма не заполнена (разметка или капча)',
+        : 'форма не заполнена (разметка или капча)',
       adapter: 'html-form',
       plan: { ...plan, filled: result.filled, resumeUploaded: result.resumeUploaded },
     };
