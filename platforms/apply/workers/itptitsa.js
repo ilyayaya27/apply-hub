@@ -23,6 +23,7 @@ const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', 'data');
 const STATE_FILE = join(DATA_DIR, 'itptitsa-state.json');
+const SHARE_STATE_FILE = join(DATA_DIR, 'itptitsa-share-state.json');
 
 // IT-Птица. Поиск работы
 const GROUP_ID = BigInt('-1003781373837');
@@ -40,6 +41,17 @@ function loadState() {
     return { processedMsgIds: [], dmsToday: { date: '', count: 0 }, dmsSent: {} };
   }
   return JSON.parse(readFileSync(STATE_FILE, 'utf8'));
+}
+
+// Usernames already known from 2nd-account HR chats — never DM these
+function loadShareKnownUsernames() {
+  if (!existsSync(SHARE_STATE_FILE)) return new Set();
+  try {
+    const s = JSON.parse(readFileSync(SHARE_STATE_FILE, 'utf8'));
+    return new Set(Object.keys(s.posted ?? {}).map(u => u.toLowerCase()));
+  } catch {
+    return new Set();
+  }
 }
 
 function saveState(state) {
@@ -181,6 +193,7 @@ async function enqueueHhUrl(url, dryRun) {
 export async function runItptitsa({ dryRun = false, limit = MSG_LIMIT } = {}) {
   const state = loadState();
   const processedSet = new Set(state.processedMsgIds);
+  const shareKnown = loadShareKnownUsernames();
 
   // Reset dmsToday counter if new day
   if (state.dmsToday.date !== todayStr()) {
@@ -246,6 +259,10 @@ export async function runItptitsa({ dryRun = false, limit = MSG_LIMIT } = {}) {
 
     // 2. Send DMs to HR contacts (rate limited)
     for (const username of usernames) {
+      if (shareKnown.has(username.toLowerCase())) {
+        console.log(`[itptitsa]   @${username} already contacted via 2nd account, skip`);
+        continue;
+      }
       if (state.dmsSent[username]) {
         console.log(`[itptitsa]   @${username} already DMed, skip`);
         continue;
