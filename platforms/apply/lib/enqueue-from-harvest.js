@@ -4,6 +4,15 @@ import { appendExternalSkip } from './external-feed.js';
 
 const SKIP_ROUTES = new Set(['hh', 'linkedin']);
 const HUMAN_ROUTES = new Set(['manual', 'telegram', 'rvc_bot']);
+
+/** Тест/смоук-фикстуры не должны попадать в боевую базу (dry-run смоук — можно). */
+const TEST_ID_RE = /(?:^|:)(?:test|drytest)(?::|$)/i;
+const SMOKE_URL_RE = /rvc-smoke|\/123456(?:\/|$)/i;
+function isTestFixture({ sourceId, postId, postUrl, links = [] }) {
+  if (TEST_ID_RE.test(String(sourceId ?? '')) || TEST_ID_RE.test(String(postId ?? ''))) return true;
+  const urls = [postUrl, ...(links ?? [])].map((u) => String(u ?? ''));
+  return urls.some((u) => SMOKE_URL_RE.test(u));
+}
 const PRESERVE_ACTIONS = new Set([
   'skip_seen',
   'skip_resume_post',
@@ -24,6 +33,15 @@ const PRESERVE_ACTIONS = new Set([
  */
 export function enqueueFromHarvestPost(input) {
   const { sourceId, postId, postUrl, rawText, links, dryRun = true, skipFitCheck = true } = input;
+
+  // Защита прод-базы: живой enqueue тестовой фикстуры (утечка смоука) — отклонить.
+  if (!dryRun && isTestFixture({ sourceId, postId, postUrl, links })) {
+    return {
+      ok: true,
+      results: [{ action: 'skip_test_fixture', route: 'skip', postUrl }],
+    };
+  }
+
   const { route, primaryUrl, hints } = classifyApplyRoute({ text: rawText, links });
 
   if (SKIP_ROUTES.has(route)) {

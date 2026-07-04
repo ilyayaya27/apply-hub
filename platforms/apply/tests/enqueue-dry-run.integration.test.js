@@ -54,4 +54,20 @@ describe('enqueue-dry-run CLI boundary', () => {
     const parsed = JSON.parse(stdout);
     expect(parsed.results[0].action).toBe('skip_resume_post');
   });
+
+  it('rejects live enqueue of test/smoke fixtures (prod-DB guard)', () => {
+    const tf = {
+      sourceId: 'telegram:test',
+      postId: 'bridge-1',
+      postUrl: 'https://forms.gle/rvc-smoke-simple-form',
+      rawText: 'smoke',
+      links: ['https://forms.gle/rvc-smoke-simple-form'],
+    };
+    // live enqueue → отклонено, в базу не пишет
+    const live = enqueueFromHarvestPost({ ...tf, dryRun: false, skipFitCheck: true });
+    expect(live.results[0].action).toBe('skip_test_fixture');
+    // dry-run смоук по-прежнему работает
+    const dry = enqueueFromHarvestPost({ ...tf, dryRun: true, skipFitCheck: true });
+    expect(dry.results[0].action).toBe('would_apply');
+  });
 });
