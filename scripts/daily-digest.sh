@@ -108,5 +108,10 @@ if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
     -d "disable_web_page_preview=true" \
     > /dev/null && log "Telegram: sent OK" || log "Telegram: send failed"
 else
-  log "Telegram: нет BOT_TOKEN/CHAT_ID — вывод только в лог"
+  # Бота нет — шлём в «Избранное» через свою GramJS-сессию.
+  if printf '%s' "$DIGEST" | node "$ROOT/platforms/apply/cli.js" notify-saved --stdin >/dev/null 2>&1; then
+    log "Telegram: sent OK (Saved Messages)"
+  else
+    log "Telegram: Saved Messages send failed — вывод только в лог"
+  fi
 fi

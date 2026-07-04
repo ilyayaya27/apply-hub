@@ -1,6 +1,10 @@
 import { config } from './config.js';
+import { sendToSavedMessages } from './tg-notify.js';
 
 const lastSent = new Map();
+
+/** Без бота через GramJS «Избранное» шлём только редкие сводки (не флудим на каждый match) */
+const SAVED_MSG_KINDS = new Set(['needs_human', 'daily_summary']);
 
 export function shouldNotify(kind) {
   const allowed = config.notifyOn ?? [];
@@ -26,6 +30,16 @@ export async function sendTelegramNotify(text, { kind = 'match' } = {}) {
   const token = config.telegramNotifyBotToken;
   const chatId = config.telegramNotifyChatId;
   if (!token || !chatId) {
+    // Бота от BotFather нет — важные сводки шлём через свою GramJS-сессию в «Избранное».
+    if (SAVED_MSG_KINDS.has(kind)) {
+      try {
+        await sendToSavedMessages(text);
+        return { ok: true, via: 'saved_messages' };
+      } catch (err) {
+        console.log(`[notify:${kind}] ${text}`);
+        return { ok: false, skipped: 'saved_messages_failed', error: String(err?.message ?? err) };
+      }
+    }
     console.log(`[notify:${kind}] ${text}`);
     return { ok: false, skipped: 'no_credentials' };
   }

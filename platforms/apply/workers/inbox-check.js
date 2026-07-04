@@ -12,12 +12,11 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from '../lib/config.js';
+import { sendToSavedMessages } from '../lib/tg-notify.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', 'data');
 const STATE_FILE = join(DATA_DIR, 'inbox-state.json');
-const RVC_DIR = join(__dirname, '..', '..', '..', 'platforms', 'rvc');
-const TG_SESSION = join(__dirname, '..', '..', '..', 'platforms', 'telegram', '.telegram_session');
 
 // Релевантные письма: ответы на отклики / приглашения / ATS
 const RELEVANT_RE =
@@ -50,37 +49,6 @@ function loadAppliedAddresses() {
     }
   } catch {}
   return addrs;
-}
-
-async function sendToSavedMessages(text, dryRun) {
-  if (dryRun) {
-    console.log(`[inbox] [dry-run] TG → Избранное:\n${text}`);
-    return true;
-  }
-  const creds = readFileSync(join(RVC_DIR, 'credentials.env'), 'utf8');
-  const API_ID = Number(creds.match(/TELEGRAM_API_ID=(\d+)/)?.[1]);
-  const API_HASH = creds.match(/TELEGRAM_API_HASH=(\w+)/)?.[1];
-  const PROXY_URL = creds.match(/TELEGRAM_PROXY_URL=(\S+)/)?.[1]?.trim();
-
-  const { TelegramClient } = await import(join(RVC_DIR, 'node_modules', 'telegram', 'index.js'));
-  const { StringSession } = await import(join(RVC_DIR, 'node_modules', 'telegram', 'sessions', 'index.js'));
-
-  let proxy;
-  if (PROXY_URL) {
-    const u = new URL(PROXY_URL);
-    proxy = { socksType: 5, ip: u.hostname, port: Number(u.port), timeout: 10 };
-  }
-
-  const client = new TelegramClient(
-    new StringSession(readFileSync(TG_SESSION, 'utf8').trim()),
-    API_ID,
-    API_HASH,
-    { connectionRetries: 3, useWSS: false, proxy },
-  );
-  await client.connect();
-  await client.sendMessage('me', { message: text });
-  await client.disconnect();
-  return true;
 }
 
 export async function runInboxCheck({ dryRun = false } = {}) {
@@ -154,7 +122,7 @@ export async function runInboxCheck({ dryRun = false } = {}) {
       const mark = h.priority === 'reply' ? '🔥' : '✉️';
       lines.push(`\n${mark} ${h.from}\n   ${h.subject}`);
     }
-    await sendToSavedMessages(lines.join('\n'), dryRun);
+    await sendToSavedMessages(lines.join('\n'), { dryRun });
   }
 
   if (!dryRun) saveState(state);

@@ -15,6 +15,7 @@ import { runItptitsa } from './workers/itptitsa.js';
 import { runItptitsaShare } from './workers/itptitsa-share.js';
 import { runTriage } from './workers/triage.js';
 import { runInboxCheck } from './workers/inbox-check.js';
+import { runWatchdog } from './workers/watchdog.js';
 import { CAREER_SMOKE_PROBES } from './lib/career-smoke-probes.js';
 import { careerPlatformId } from './adapters/platforms/hosts.js';
 
@@ -117,6 +118,33 @@ if (cmd === 'inbox-check') {
   process.exit(out.ok ? 0 : 1);
 }
 
+if (cmd === 'watchdog') {
+  const dryRun = process.argv.includes('--dry-run') || process.env.APPLY_DRY_RUN === '1';
+  const out = await runWatchdog({ dryRun });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'notify-saved') {
+  // Текст из --stdin или из argv[3]; шлём в «Избранное» через GramJS-сессию.
+  const { sendToSavedMessages } = await import('./lib/tg-notify.js');
+  const text = process.argv.includes('--stdin')
+    ? readFileSync(0, 'utf8').trim()
+    : (process.argv[3] ?? '').trim();
+  if (!text) {
+    console.error('notify-saved: пустой текст');
+    process.exit(1);
+  }
+  try {
+    await sendToSavedMessages(text);
+    console.log(JSON.stringify({ ok: true, via: 'saved_messages' }));
+    process.exit(0);
+  } catch (err) {
+    console.error(JSON.stringify({ ok: false, error: String(err?.message ?? err) }));
+    process.exit(1);
+  }
+}
+
 if (cmd === 'triage') {
   const dryRun = process.argv.includes('--dry-run') || process.env.APPLY_DRY_RUN === '1';
   const out = await runTriage({ dryRun });
@@ -178,5 +206,11 @@ console.error(`Usage:
   cli.js repair-career-routes [--apply]
   cli.js career-smoke <vacancy-url> | career-smoke --all
   cli.js rvc-global-apply [limit] [--dry-run]
+  cli.js triage [--dry-run]
+  cli.js inbox-check [--dry-run]
+  cli.js watchdog [--dry-run]
+  cli.js notify-saved --stdin | "text"
+  cli.js itptitsa-share [--dry-run]
+  cli.js itptitsa-process [limit] [--dry-run]
 `);
 process.exit(1);
