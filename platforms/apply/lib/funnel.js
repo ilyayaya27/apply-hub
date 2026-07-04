@@ -52,16 +52,24 @@ export function buildFunnelReport() {
     .prepare(
       `SELECT source,
               COUNT(*) AS total,
-              SUM(CASE WHEN status='applied' THEN 1 ELSE 0 END) AS applied
-       FROM vacancies GROUP BY source ORDER BY total DESC LIMIT 20`,
+              SUM(CASE WHEN status='applied' THEN 1 ELSE 0 END) AS applied,
+              SUM(CASE WHEN route IN ('email','form') AND status != 'skipped' THEN 1 ELSE 0 END) AS actionable
+       FROM vacancies GROUP BY source ORDER BY total DESC LIMIT 25`,
     )
     .all()
     .map((r) => ({
       source: r.source ?? '—',
       total: num(r, 'total'),
+      actionable: num(r, 'actionable'),
       applied: num(r, 'applied'),
       replies: repliesBySource[r.source] ?? 0,
     }));
+
+  // Каналы-кандидаты на выключение: заметный объём, но 0 откликов и 0 живых
+  // actionable-маршрутов — чистый шум, только раздувает базу.
+  const dropCandidates = bySource
+    .filter((s) => s.total >= 10 && s.applied === 0 && s.actionable === 0 && s.replies === 0)
+    .map((s) => s.source);
 
   const recentReplies = db
     .prepare(
@@ -112,6 +120,7 @@ export function buildFunnelReport() {
     },
     byRoute,
     bySource,
+    dropCandidates,
     letterAb,
     recentReplies,
   };
@@ -132,9 +141,16 @@ export function formatFunnelReport(r) {
   lines.push('По маршрутам (total → applied):');
   for (const x of r.byRoute) lines.push(`  ${x.route.padEnd(10)} ${x.total} → ${x.applied}`);
   lines.push('');
-  lines.push('По источникам (total | applied | replies):');
+  lines.push('По источникам (total | actionable | applied | replies):');
   for (const x of r.bySource) {
-    lines.push(`  ${String(x.source).padEnd(28)} ${x.total} | ${x.applied} | ${x.replies}`);
+    const flag = x.total >= 10 && x.applied === 0 && x.actionable === 0 ? ' ⚠️' : '';
+    lines.push(`  ${String(x.source).padEnd(28)} ${x.total} | ${x.actionable} | ${x.applied} | ${x.replies}${flag}`);
+  }
+  if (r.dropCandidates?.length) {
+    lines.push('');
+    lines.push('⚠️ Каналы-кандидаты на выключение (объём есть, конверсия 0):');
+    lines.push(`  ${r.dropCandidates.join(', ')}`);
+    lines.push('  → platforms/telegram/src/config/channels.json');
   }
   if (r.letterAb?.length) {
     lines.push('');

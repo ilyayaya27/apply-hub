@@ -116,6 +116,15 @@ export async function runTriage({ dryRun = false } = {}) {
       else if (ai?.telegram) target = { route: 'telegram', url: `https://t.me/${ai.telegram}` };
     }
 
+    // Для общей harvest-очереди telegram-контакты не обрабатываем: отдельного
+    // DM-сендера нет и решили не делать (ban-risk + нулевая конверсия по воронке).
+    // Верифицированных HR ведёт itptitsa-воркер напрямую из форум-топика.
+    if (target?.route === 'telegram') {
+      out.telegramArchived = (out.telegramArchived ?? 0) + 1;
+      if (!dryRun) setStatus.run('skipped', row.route, null, row.id);
+      continue;
+    }
+
     if (target) {
       out.requeued.push({ id: row.id, route: target.route, url: target.url });
       console.log(`[triage] requeue ${row.id} → ${target.route} (${(target.url ?? '').slice(0, 60)})`);
@@ -127,7 +136,7 @@ export async function runTriage({ dryRun = false } = {}) {
   }
 
   console.log(
-    `[triage] done: total=${out.total} resume_skipped=${out.resumeSkipped} requeued=${out.requeued.length} no_contact=${out.noContact} llm=${out.llmCalls}${dryRun ? ' [dry-run]' : ''}`,
+    `[triage] done: total=${out.total} resume_skipped=${out.resumeSkipped} requeued=${out.requeued.length} tg_archived=${out.telegramArchived ?? 0} no_contact=${out.noContact} llm=${out.llmCalls}${dryRun ? ' [dry-run]' : ''}`,
   );
-  return { ok: true, ...out };
+  return { ok: true, telegramArchived: 0, ...out };
 }
