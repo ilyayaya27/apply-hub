@@ -8,6 +8,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { config } from './config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RVC_DIR = join(__dirname, '..', '..', '..', 'platforms', 'rvc');
@@ -55,6 +56,11 @@ export async function buildTelegramClient({ sessionFile = MAIN_SESSION } = {}) {
 export async function sendToSavedMessages(text, { dryRun = false } = {}) {
   if (dryRun) {
     console.log(`[tg-notify] [dry-run] → Избранное:\n${text}`);
+    return true;
+  }
+  if (!config.tgSelfNotify) {
+    // Самоуведомления выключены (TG_SELF_NOTIFY=0) — только в лог.
+    console.log(`[tg-notify:muted]\n${text}`);
     return true;
   }
   const client = await buildTelegramClient();

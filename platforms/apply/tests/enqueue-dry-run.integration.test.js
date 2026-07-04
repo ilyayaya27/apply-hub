@@ -55,7 +55,7 @@ describe('enqueue-dry-run CLI boundary', () => {
     expect(parsed.results[0].action).toBe('skip_resume_post');
   });
 
-  it('rejects live enqueue of test/smoke fixtures (prod-DB guard)', () => {
+  it('rejects test/smoke fixtures in BOTH dry-run and live (prod-DB guard)', () => {
     const tf = {
       sourceId: 'telegram:test',
       postId: 'bridge-1',
@@ -63,11 +63,13 @@ describe('enqueue-dry-run CLI boundary', () => {
       rawText: 'smoke',
       links: ['https://forms.gle/rvc-smoke-simple-form'],
     };
-    // live enqueue → отклонено, в базу не пишет
+    // dry-run тоже персистит через processVacancyPost — поэтому блокируем всегда
     const live = enqueueFromHarvestPost({ ...tf, dryRun: false, skipFitCheck: true });
     expect(live.results[0].action).toBe('skip_test_fixture');
-    // dry-run смоук по-прежнему работает
     const dry = enqueueFromHarvestPost({ ...tf, dryRun: true, skipFitCheck: true });
-    expect(dry.results[0].action).toBe('would_apply');
+    expect(dry.results[0].action).toBe('skip_test_fixture');
+    // и в базу ничего не попало
+    const leaked = enqueueFromHarvestPost({ ...tf, dryRun: true, skipFitCheck: true });
+    expect(leaked.results[0].action).toBe('skip_test_fixture');
   });
 });

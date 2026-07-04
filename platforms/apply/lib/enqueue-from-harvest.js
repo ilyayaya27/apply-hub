@@ -34,8 +34,10 @@ const PRESERVE_ACTIONS = new Set([
 export function enqueueFromHarvestPost(input) {
   const { sourceId, postId, postUrl, rawText, links, dryRun = true, skipFitCheck = true } = input;
 
-  // Защита прод-базы: живой enqueue тестовой фикстуры (утечка смоука) — отклонить.
-  if (!dryRun && isTestFixture({ sourceId, postId, postUrl, links })) {
+  // Защита прод-базы: тестовые/смоук-фикстуры не должны попадать в БД НИКОГДА —
+  // processVacancyPost персистит и в dry-run, поэтому блокируем до него (это и был
+  // исходный вектор загрязнения смоуком).
+  if (isTestFixture({ sourceId, postId, postUrl, links })) {
     return {
       ok: true,
       results: [{ action: 'skip_test_fixture', route: 'skip', postUrl }],

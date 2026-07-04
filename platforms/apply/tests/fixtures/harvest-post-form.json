@@ -1,9 +1,9 @@
 {
-  "sourceId": "telegram:test_channel",
+  "sourceId": "telegram:jobs_channel",
   "postId": "999",
-  "postUrl": "https://t.me/test_channel/999",
-  "rawText": "Frontend dev\nApply: https://forms.gle/rvc-smoke-simple-form\nhr@test.io",
-  "links": ["https://forms.gle/rvc-smoke-simple-form"],
+  "postUrl": "https://t.me/jobs_channel/999",
+  "rawText": "Frontend dev\nApply: https://careers.acme.io/frontend/apply\nhr@test.io",
+  "links": ["https://careers.acme.io/frontend/apply"],
   "dryRun": true,
   "skipFitCheck": true
 }

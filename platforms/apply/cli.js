@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { enqueueFromHarvestPost } from './lib/enqueue-from-harvest.js';
 import { applyNext, getApplyStats } from './lib/apply-dispatcher.js';
 import { buildAuditReport, formatAuditReport } from './lib/audit.js';
+import { buildFunnelReport, formatFunnelReport } from './lib/funnel.js';
 import { notifyHarvestHumanDigest } from './lib/notify-harvest-digest.js';
 import { repairResumePosts } from './lib/repair-resume.js';
 import { repairCareerRoutes } from './lib/repair-career-routes.js';
@@ -56,6 +57,16 @@ if (cmd === 'audit') {
     console.log(JSON.stringify(report, null, 2));
   } else {
     console.log(formatAuditReport(report));
+  }
+  process.exit(0);
+}
+
+if (cmd === 'funnel') {
+  const report = buildFunnelReport();
+  if (process.argv.includes('--json')) {
+    console.log(JSON.stringify(report, null, 2));
+  } else {
+    console.log(formatFunnelReport(report));
   }
   process.exit(0);
 }
@@ -201,6 +212,7 @@ console.error(`Usage:
   cli.js enqueue --stdin | fixture.json   (dryRun:false in JSON for live queue)
   cli.js apply-next [n]
   cli.js audit [harvest-latest.json] [--json]
+  cli.js funnel [--json]
   cli.js notify-harvest-digest [harvest-latest.json]
   cli.js repair-resume [--apply]
   cli.js repair-career-routes [--apply]

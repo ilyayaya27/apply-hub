@@ -13,6 +13,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from '../lib/config.js';
 import { sendToSavedMessages } from '../lib/tg-notify.js';
+import { getDb } from '../lib/db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', 'data');
@@ -103,6 +104,8 @@ export async function runInboxCheck({ dryRun = false } = {}) {
 
       hits.push({
         uid: msg.uid,
+        fromAddr,
+        fromName,
         from: `${fromName} <${fromAddr}>`.trim(),
         subject,
         date: date ? new Date(date).toISOString() : null,
@@ -116,6 +119,11 @@ export async function runInboxCheck({ dryRun = false } = {}) {
 
   console.log(`[inbox] новых релевантных: ${hits.length} (lastUid=${state.lastUid})`);
 
+  // Персистим ответы в БД (для воронки cli.js funnel), с best-effort привязкой к вакансии.
+  if (hits.length && !dryRun) {
+    persistReplies(hits);
+  }
+
   if (hits.length) {
     const lines = ['📬 Ответы на отклики:'];
     for (const h of hits) {
@@ -128,4 +136,24 @@ export async function runInboxCheck({ dryRun = false } = {}) {
   if (!dryRun) saveState(state);
 
   return { ok: true, newRelevant: hits.length, hits };
+}
+
+/** Сохраняет ответы в email_replies (dedup по uid) + пытается связать с откликнутой вакансией. */
+function persistReplies(hits) {
+  const db = getDb(config.dbPath);
+  const insert = db.prepare(
+    `INSERT OR IGNORE INTO email_replies (uid, from_addr, from_name, subject, received_at, priority, matched_vacancy_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const findVacancy = db.prepare(
+    `SELECT vacancy_id FROM applications WHERE error IS NULL AND note LIKE ? ORDER BY applied_at DESC LIMIT 1`,
+  );
+  for (const h of hits) {
+    let matched = null;
+    if (h.fromAddr) {
+      const row = findVacancy.get(`%email to ${h.fromAddr}%`);
+      matched = row?.vacancy_id ?? null;
+    }
+    insert.run(h.uid, h.fromAddr ?? '', h.fromName ?? '', h.subject ?? '', h.date ?? '', h.priority, matched);
+  }
 }

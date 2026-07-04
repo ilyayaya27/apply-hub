@@ -41,6 +41,17 @@ CREATE TABLE IF NOT EXISTS cooldowns (
   until_ts INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS email_replies (
+  uid INTEGER PRIMARY KEY,
+  from_addr TEXT,
+  from_name TEXT,
+  subject TEXT,
+  received_at TEXT,
+  priority TEXT,
+  matched_vacancy_id TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_vacancies_status ON vacancies(status);
 CREATE INDEX IF NOT EXISTS idx_applications_vacancy ON applications(vacancy_id);
 `;

@@ -82,6 +82,8 @@ export const config = {
   },
   telegramNotifyBotToken: env.TELEGRAM_NOTIFY_BOT_TOKEN ?? '',
   telegramNotifyChatId: env.TELEGRAM_NOTIFY_CHAT_ID ?? '',
+  /** Слать ли самоуведомления в TG «Избранное». Выкл → только логи. */
+  tgSelfNotify: bool('TG_SELF_NOTIFY', true),
   notifyOn: list('NOTIFY_ON', ['match', 'applied', 'failed', 'needs_human', 'daily_summary']),
   notifyThrottleSec: num('NOTIFY_THROTTLE_SEC', 60),
   notifyCmd: env.NOTIFY_CMD ?? '',
