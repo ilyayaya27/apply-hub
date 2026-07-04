@@ -5,6 +5,8 @@ const HH_BARE_RE = /\b(?:[\w-]+\.)?hh\.ru\/[^\s)\]>]+/gi;
 const LI_RE = /https?:\/\/(?:[\w-]+\.)?linkedin\.com\/[^\s)]+/i;
 const LI_BARE_RE = /\b(?:[\w-]+\.)?linkedin\.com\/[^\s)\]>]+/gi;
 const TG_RE = /https?:\/\/t\.me\/[^\s)]+/i;
+/** t.me/<channel>/<postId> — ссылка НА пост канала, а не DM-контакт HR */
+const TG_POST_RE = /t\.me\/[\w]+\/\d+/i;
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
 const FORM_HINTS = [
   /forms\.gle\//i,
@@ -77,7 +79,7 @@ export const classifyApplyRoute = ({ text, links }) => {
   }
 
   for (const url of all) {
-    if (TG_RE.test(url) && !/revacancy\/\d+$/i.test(url)) {
+    if (TG_RE.test(url) && !TG_POST_RE.test(url)) {
       return { route: "telegram", primaryUrl: url, hints: ["Написать в Telegram HR"] };
     }
   }

@@ -1,5 +1,8 @@
 /**
- * Авторазбор ручной очереди (needs_human) — цель: ноль ручной работы.
+ * Авторазбор ручной очереди — цель: ноль ручной работы.
+ *
+ * Сканирует и needs_human, и застрявшие queued|manual посты (их dequeueNext
+ * никогда не берёт при AUTO_APPLY, поэтому без триажа они лежат вечно).
  *
  * 1. Чужие #резюме-посты → status 'skipped' (мусор из харвеста)
  * 2. Реальные вакансии: достаём контакт (regex + LLM fallback через OpenRouter)
@@ -7,6 +10,9 @@
  *    → career-URL    → route 'form', обратно в очередь
  *    → t.me/@username → route 'telegram' + status queued (DM-воркер)
  * 3. Контакта нет → 'skipped' (no_contact)
+ *
+ * Каждый пост выходит из бакета 'manual' навсегда (в email/form/telegram или skipped),
+ * поэтому повторных LLM-вызовов на тех же постах не происходит.
  *
  * Run: node cli.js triage [--dry-run]
  */
@@ -16,7 +22,8 @@ import { isCandidateResumePost } from '../lib/resume-post.js';
 import { classifyApplyRoute } from '../lib/router.js';
 
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
-const TG_USER_RE = /(?:https?:\/\/)?t\.me\/([\w]{4,32})|(?<![/\w])@([\w]{4,32})/i;
+// Реальный DM-хэндл: t.me/user (не пост t.me/channel/123) или @user в тексте
+const TG_USER_RE = /(?:^|\s)@([a-z0-9_]{4,32})\b|(?:https?:\/\/)?t\.me\/([a-z0-9_]{4,32})(?![/\w])/i;
 
 async function llmExtractContact(rawText) {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -55,7 +62,11 @@ async function llmExtractContact(rawText) {
 export async function runTriage({ dryRun = false } = {}) {
   const db = getDb(config.dbPath);
   const rows = db
-    .prepare(`SELECT id, route, url, title, company, raw_text FROM vacancies WHERE status = 'needs_human'`)
+    .prepare(
+      `SELECT id, route, url, title, company, raw_text FROM vacancies
+       WHERE status = 'needs_human'
+          OR (status = 'queued' AND route = 'manual')`,
+    )
     .all();
 
   const setStatus = db.prepare(
@@ -78,16 +89,21 @@ export async function runTriage({ dryRun = false } = {}) {
     const { route: reRoute, primaryUrl } = classifyApplyRoute({ text, links: row.url ? [row.url] : [] });
 
     let target = null;
+    const tgMatch = TG_USER_RE.exec(text);
     if (reRoute === 'email' || (EMAIL_RE.test(text) && reRoute !== 'hh' && reRoute !== 'linkedin')) {
       target = { route: 'email', url: primaryUrl ?? row.url };
     } else if (reRoute === 'form') {
       target = { route: 'form', url: primaryUrl ?? row.url };
-    } else if (reRoute === 'telegram' || TG_USER_RE.test(text)) {
+    } else if (reRoute === 'telegram') {
       target = { route: 'telegram', url: primaryUrl ?? row.url };
+    } else if (tgMatch) {
+      // Реальный @handle из текста — строим t.me/<handle>, не ссылку на пост канала
+      const handle = tgMatch[1] ?? tgMatch[2];
+      target = { route: 'telegram', url: `https://t.me/${handle}` };
     }
 
-    // 3. LLM fallback — когда regex ничего не дал
-    if (!target) {
+    // 3. LLM fallback — когда regex ничего не дал (в dry-run не тратим деньги на API)
+    if (!target && !dryRun) {
       out.llmCalls++;
       const ai = await llmExtractContact(text);
       if (ai && ai.is_vacancy === false) {

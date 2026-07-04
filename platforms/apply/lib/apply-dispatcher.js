@@ -41,8 +41,9 @@ export async function dispatchApply(vacancy) {
   }
 
   if (!canApplyRouteToday(vacancy.route)) {
-    markNeedsHuman(vacancy.key, `route limit: ${vacancy.route}`);
-    return { ok: false, status: 'needs_human', error: 'route_limit' };
+    // Лимит по маршруту — не повод звать человека; вернём в очередь до завтра.
+    releaseProcessing(vacancy.key, 'queued');
+    return { ok: false, status: 'skipped', error: 'route_limit' };
   }
 
   if (!AUTO_ROUTES.has(vacancy.route)) {

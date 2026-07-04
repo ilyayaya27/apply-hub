@@ -67,7 +67,8 @@ export const markSeen = (key, payload = {}) => {
 
 export function countApplicationsToday(route = null) {
   const day = todayKey();
-  const successOnly = ` AND method != 'needs_human'`;
+  // Только успешные отклики: не needs_human и без ошибки (failed не съедает лимит).
+  const successOnly = ` AND method != 'needs_human' AND error IS NULL`;
   if (route) {
     const row = db()
       .prepare(

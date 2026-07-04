@@ -64,4 +64,13 @@ describe('dequeueNext', () => {
     store.markApplied('x:2', { method: 'form', note: 'ok' });
     expect(store.countApplicationsToday()).toBe(1);
   });
+
+  it('does not count failed applies against daily quota', () => {
+    store.upsertVacancy({ id: 'f:1', source: 'tg', route: 'form', status: 'queued' });
+    store.upsertVacancy({ id: 'f:2', source: 'tg', route: 'email', status: 'queued' });
+    store.markFailed('f:1', 'HTTP 500');
+    expect(store.countApplicationsToday()).toBe(0);
+    store.markApplied('f:2', { method: 'email', note: 'ok' });
+    expect(store.countApplicationsToday()).toBe(1);
+  });
 });
