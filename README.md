@@ -218,11 +218,11 @@ journalctl --user -u getmatch-worker.service
 
 ---
 
-### 7. IT-Птица — `itptitsa-worker.timer` + `itptitsa-share.timer`
+### 7. Личный TG-мониторинг — `itptitsa-worker.timer` + `itptitsa-share.timer`
 
 **Что делает (два воркера):**
 
-**`itptitsa-process`** — мониторит топик "Контакты HR и Вакансии" (topic_id=33) в закрытой Telegram-группе IT-Птица. Извлекает HH.ru-ссылки (→ очередь откликов) и @username HR-ов (→ DM с резюме + реакция 👍). Лимит: 5 DM/день.
+**`itptitsa-process`** — мониторит топик "Контакты HR и Вакансии" в личном Telegram-чате. Извлекает HH.ru-ссылки (→ очередь откликов) и @username HR-ов (→ DM с резюме + реакция 👍). Лимит: 5 DM/день.
 
 **`itptitsa-share`** — читает HR-переписки второго аккаунта (`@ilyailyailya27`), фильтрует свежие контакты (≤7 дней), пропускает закрытые вакансии и гео-отказы (РФ/РБ/локальные офисы), постит сводку одним сообщением в тот же топик от первого аккаунта.
 
@@ -427,8 +427,8 @@ platforms/rvc/data/
 | rvc.global | `rvc-global-worker.timer` | каждые 6ч | ✅ работает |
 | **GetMatch** | `getmatch-worker.timer` | каждые 6ч | ✅ работает (сессия: login-once) |
 | **HN Hiring** | `hn-hiring-worker.timer` | ежедневно 10:00 | ✅ работает (26 откликов 1 июля) |
-| **IT-Птица DM** | `itptitsa-worker.timer` | ежедневно 11:00 | ✅ работает (5 DM/день, реакции 👍) |
-| **IT-Птица Share** | `itptitsa-share.timer` | ежедневно 12:00 | ✅ работает (2й аккаунт → топик) |
+| **TG-чат DM** | `itptitsa-worker.timer` | ежедневно 11:00 | ✅ работает (5 DM/день, реакции 👍) |
+| **TG-чат Share** | `itptitsa-share.timer` | ежедневно 12:00 | ✅ работает (2й аккаунт → топик) |
 | Wellfound | `cli.js wellfound-apply` | вручную | ⚠️ DataDome (применять руками) |
 | career-сайты | `cli.js career-smoke` | по запросу | ✅ RWB, Beeline, VK, Sber, Ozon, Облако.ру |
 
