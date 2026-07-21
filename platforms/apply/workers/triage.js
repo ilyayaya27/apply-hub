@@ -59,6 +59,13 @@ async function llmExtractContact(rawText) {
   }
 }
 
+// Сколько раз можно вернуть form/email-заявку в очередь после needs_human, прежде
+// чем сдаться окончательно. Без потолка застрявший URL (капча, битая разметка)
+// гоняется по кругу вечно: apply-next валит его в needs_human → следующий триаж
+// тем же регэкспом находит ту же ссылку и снова кладёт в queued. Нашли живой
+// пример: telegram:easy_frontend_jobs:2268 — 26 попыток за неделю, каждые ~2ч.
+const MAX_REQUEUE_ATTEMPTS = 2;
+
 export async function runTriage({ dryRun = false } = {}) {
   const db = getDb(config.dbPath);
   const rows = db
@@ -72,8 +79,11 @@ export async function runTriage({ dryRun = false } = {}) {
   const setStatus = db.prepare(
     `UPDATE vacancies SET status = ?, route = ?, url = COALESCE(?, url), updated_at = datetime('now') WHERE id = ?`,
   );
+  const countAttempts = db.prepare(
+    `SELECT COUNT(*) AS c FROM applications WHERE vacancy_id = ? AND method = 'needs_human'`,
+  );
 
-  const out = { total: rows.length, resumeSkipped: 0, requeued: [], noContact: 0, llmCalls: 0 };
+  const out = { total: rows.length, resumeSkipped: 0, requeued: [], noContact: 0, llmCalls: 0, gaveUp: 0 };
 
   for (const row of rows) {
     const text = row.raw_text ?? '';
@@ -126,6 +136,13 @@ export async function runTriage({ dryRun = false } = {}) {
     }
 
     if (target) {
+      const priorAttempts = countAttempts.get(row.id).c;
+      if (priorAttempts >= MAX_REQUEUE_ATTEMPTS) {
+        out.gaveUp++;
+        console.log(`[triage] give up ${row.id} — ${priorAttempts} failed needs_human попыток, форма/письмо не работает`);
+        if (!dryRun) setStatus.run('skipped', row.route, null, row.id);
+        continue;
+      }
       out.requeued.push({ id: row.id, route: target.route, url: target.url });
       console.log(`[triage] requeue ${row.id} → ${target.route} (${(target.url ?? '').slice(0, 60)})`);
       if (!dryRun) setStatus.run('queued', target.route, target.url, row.id);
@@ -136,7 +153,7 @@ export async function runTriage({ dryRun = false } = {}) {
   }
 
   console.log(
-    `[triage] done: total=${out.total} resume_skipped=${out.resumeSkipped} requeued=${out.requeued.length} tg_archived=${out.telegramArchived ?? 0} no_contact=${out.noContact} llm=${out.llmCalls}${dryRun ? ' [dry-run]' : ''}`,
+    `[triage] done: total=${out.total} resume_skipped=${out.resumeSkipped} requeued=${out.requeued.length} gave_up=${out.gaveUp} tg_archived=${out.telegramArchived ?? 0} no_contact=${out.noContact} llm=${out.llmCalls}${dryRun ? ' [dry-run]' : ''}`,
   );
   return { ok: true, telegramArchived: 0, ...out };
 }

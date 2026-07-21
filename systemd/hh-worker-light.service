@@ -1,0 +1,18 @@
+[Unit]
+Description=HH Applicant Tool (light-jobs, account3) — отклики, ответы, автоподнятие (8–21)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documents/apply-hub/light-jobs
+ExecStartPre=%h/Documents/apply-hub/lib/ensure-venv.sh
+ExecStartPre=%h/Documents/apply-hub/lib/wait-for-proxy.sh
+ExecStart=%h/Documents/apply-hub/light-jobs/hh-worker.sh
+Restart=always
+RestartSec=60
+# Groq через openai_proxy_url; HH — напрямую
+Environment=NO_PROXY=localhost,127.0.0.1
+
+[Install]
+WantedBy=default.target

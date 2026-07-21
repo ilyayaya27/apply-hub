@@ -6,6 +6,7 @@ from hh_applicant_tool.screening_prompt import (
     default_contacts,
     default_screening_rules,
     ensure_telegram_footer,
+    is_no_reply_needed,
     resolve_reply_chat_prompts,
     screening_rules_from_config,
 )
@@ -33,8 +34,29 @@ def test_ensure_telegram_footer_skips_duplicate():
 
 def test_default_contacts():
     c = default_contacts()
-    assert c["telegram_username"] == "ilyayaya27"
-    assert "github.com/ilyayaya27" in c["github_url"]
+    assert c["telegram_username"] == "ilyailyailya27"
+    assert "github.com/ilyasilkin27" in c["github_url"]
+
+
+def test_is_no_reply_needed_generic_stub():
+    assert is_no_reply_needed("Рассмотрим ваше резюме и свяжемся с вами, если подойдёте")
+
+
+def test_is_no_reply_needed_decline_after_screening():
+    text = (
+        "Благодарю за ответы! К сожалению, на текущий проект требуется "
+        "разработчик с бОльшим опытом с Dagster и Temporal"
+    )
+    assert is_no_reply_needed(text)
+
+
+def test_is_no_reply_needed_false_when_question_follows_sorry():
+    text = "К сожалению, эта вакансия закрылась. Но у нас есть похожая — интересно?"
+    assert not is_no_reply_needed(text)
+
+
+def test_is_no_reply_needed_false_for_real_question():
+    assert not is_no_reply_needed("Укажите ваши зарплатные ожидания?")
 
 
 def test_screening_rules_from_config_merges():

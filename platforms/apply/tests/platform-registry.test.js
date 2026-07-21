@@ -16,7 +16,7 @@ const CASES = [
   ['djinni', 'https://djinni.io/jobs/99/'],
   ['getmatch', 'https://getmatch.ru/vacancies/42'],
   ['hirehi', 'https://hirehi.ru/vacancy/frontend'],
-  ['jobrockets', 'https://jobrockets.ru/job/abc'],
+  // jobrockets removed from routing — DNS dead (NXDOMAIN), deprecated in sources.yaml
 ];
 
 describe('career platform hosts', () => {

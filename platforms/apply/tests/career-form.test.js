@@ -3,14 +3,14 @@ import { PLATFORM_SPECS, platformSpec } from '../adapters/platforms/specs.js';
 import { resolvePlatformAdapter } from '../adapters/platforms/registry.js';
 
 describe('career platform specs', () => {
-  it('has specs for all six career platforms', () => {
+  it('has specs for all career platforms', () => {
     const ids = [
       'vk_careers',
       'habr_career',
       'djinni',
       'getmatch',
       'hirehi',
-      'jobrockets',
+      // jobrockets removed — DNS dead (NXDOMAIN), deprecated in sources.yaml
     ];
     for (const id of ids) {
       expect(platformSpec(id)?.applyButtonSelectors?.length).toBeGreaterThan(0);

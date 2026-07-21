@@ -23,8 +23,18 @@ export const CAREER_SMOKE_PROBES = [
     platformId: 'beeline_careers',
     url: 'https://job.beeline.ru/vacancies/08f545ed-c711-4ea9-845d-067f69f045c6',
   },
+  {
+    platformId: 'getmatch',
+    url: 'https://getmatch.ru/vacancies/34997-frontend-razrabotchik-v-komandu-crm',
+  },
+  { platformId: 'djinni', url: 'https://djinni.co/jobs/811522-front-end-developer/' },
+  {
+    platformId: 'moysklad_careers',
+    url: 'https://www.moysklad.ru/company/careers/vacancy/senior-developer-bitrix/',
+  },
   // TBD: tbank — SPA с lazy vacancy URLs, нужен ручной probe URL
-  // TBD: habr_career, djinni — требуют login-once
-  // TBD: getmatch, hirehi, jobrockets
-  // TBD: alfabank_careers, moysklad_careers — form не найдена (возможно, за логином)
+  // TBD: habr_career — требует login-once (интерактивный, ручной)
+  // hirehi — apply требует регистрацию/логин (клик "Откликнуться" → "Доступно после регистрации"), не добавлять как probe
+  // jobrockets — DNS dead (NXDOMAIN), деприкейтед, см. hosts.js/specs.js/sources.yaml
+  // alfabank_careers — job.alfabank.ru: 0 IT-вакансий сейчас, нет форм/индивидуальных ссылок на вакансию — lead-gen страница, не apply-форма
 ];

@@ -57,10 +57,17 @@ export const planFormFillFormlessFromHtml = (html, profile, letter) => {
       return;
     }
 
+    // <label for=id> — надёжнее placeholder, который часто просто пример
+    // формата ("+7 (912) ...") без слова "телефон".
+    const id = $(el).attr('id');
+    const forLabel = id ? $(`label[for="${id}"]`).text().trim() : '';
+    const closestLabel = forLabel ? '' : $(el).closest('label').text().trim();
     const label =
-      $(el).attr('placeholder') ??
-      $(el).attr('aria-label') ??
-      $(el).attr('name') ??
+      forLabel ||
+      closestLabel ||
+      $(el).attr('aria-label') ||
+      $(el).attr('placeholder') ||
+      $(el).attr('name') ||
       '';
 
     let value = $(el).attr('value') ?? '';

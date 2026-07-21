@@ -36,25 +36,51 @@ function saveState(state) {
   writeFileSync(STATE_PATH, JSON.stringify(state, null, 2));
 }
 
+// getmatch.ru сменил фильтрацию на клиентский модал (checkbox + React-стейт,
+// без отражения в URL) — ?spec=frontend&remote=true больше ничего не фильтрует,
+// отдаёт общую ленту (обнаружено 09.07: 748 вакансий без фильтра, включая
+// 1С/QA/ML/DBA). Вместо повторения хрупкого клика по модалке — берём офферы
+// напрямую с /api/offers (тот же эндпоинт, что дёргает сайт) и фильтруем сами.
+// Требует явного фронтенд-сигнала (frontend/react/next.js/vue/angular), просто
+// "javascript"/"typescript" не считаем — так проходят и Node.js-бэкенд роли.
+const FRONTEND_RE = /front[- ]?end|\breact\b|next\.?js|\bvue\b|\bangular\b/i;
+// 13.07: матчили position+skills вместе — skills это стек всей команды/проекта,
+// не обязательно стек самой роли ("Web Developer (Python)" и "Главный
+// технический архитектор" тянули React из стека проекта и проходили фильтр).
+// За 12 дней так набралось 130+ живых откликов на явно нерелевантные роли
+// (аналитик/QA/DevOps/Java/PHP/1С/DBA). Матчим только по названию должности —
+// у реальных фронтенд-вакансий сигнал всегда есть в title ("React Developer",
+// "Frontend-разработчик", "React Native").
+const NON_DEV_TITLE_RE = /аналитик|analyst|менеджер|manager|руководител|lead\b|тестировщик|\bqa\b|devrel|security|dba\b|data scien|scrum|product owner/i;
+
 async function scrapeVacancies(page, limit = 20) {
-  await page.goto('https://getmatch.ru/vacancies?spec=frontend&remote=true', {
-    waitUntil: 'networkidle', timeout: 30_000,
+  // fetch() внутри evaluate() бьётся об about:blank без нормального origin —
+  // нужна лёгкая навигация на сам сайт перед вызовом API с той же страницы.
+  await page.goto('https://getmatch.ru/vacancies', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+
+  const pool = await page.evaluate(async () => {
+    const r = await fetch('https://getmatch.ru/api/offers?sa=any&p=1&offset=0&limit=150&pa=all');
+    const data = await r.json();
+    return data.offers ?? [];
   });
-  await page.waitForTimeout(4000);
-  const links = await page.evaluate(() =>
-    [...document.querySelectorAll('a[href*="/vacancies/"]')]
-      .map(a => a.href.split('?')[0])
-      .filter(h => /\/vacancies\/\d/.test(h))
-      .filter((v, i, arr) => arr.indexOf(v) === i)
-  );
-  return links.slice(0, limit);
+
+  const matched = pool.filter((o) => {
+    const position = o.position ?? '';
+    if (NON_DEV_TITLE_RE.test(position)) return false;
+    return FRONTEND_RE.test(position);
+  });
+
+  console.log(`[getmatch] API pool=${pool.length}, frontend-matched=${matched.length}`);
+
+  return matched.slice(0, limit).map((o) => `https://getmatch.ru${o.url}`);
 }
 
 async function applyWizard(page, url, letter) {
   await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
   await page.waitForTimeout(3000);
 
-  const applyBtn = page.locator('button:has-text("Откликнуться")').first();
+  // Англоязычные (NDA/зарубежные) вакансии показывают "Apply" вместо "Откликнуться".
+  const applyBtn = page.locator('button:has-text("Откликнуться"), button:has-text("Apply")').first();
   if (!(await applyBtn.isVisible().catch(() => false))) {
     return { ok: false, status: 'no_apply_button' };
   }

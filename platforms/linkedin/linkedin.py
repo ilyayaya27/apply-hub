@@ -160,16 +160,35 @@ class Linkedin:
             self.driver.get(url)
             time.sleep(random.uniform(1, constants.botSpeed))
 
-            # Handle case where no jobs are found (//small element doesn't exist)
+            # LinkedIn changed DOM — //small may be gone; fall back to counting job cards directly
             try:
-                totalJobs = self.driver.find_element(By.XPATH,'//small').text 
-            except Exception as e:
-                urlWords = utils.urlToKeywords(url)
-                lineToWrite = "\n Category: " + urlWords[0] + ", Location: " + urlWords[1] + ", No jobs found for this search criteria. Skipping..."
-                self.displayWriteResults(lineToWrite)
-                if config.displayWarnings:
-                    utils.prYellow(f"⚠️ Warning: No jobs found for {urlWords[0]} in {urlWords[1]}. The //small element was not found.")
-                continue  # Skip to next URL
+                totalJobs = self.driver.find_element(By.XPATH,'//small').text
+            except Exception:
+                totalJobs = None
+
+            if not totalJobs:
+                # Try alternate selectors LinkedIn uses for job count
+                for selector in [
+                    '.jobs-search-results-list__subtitle',
+                    '[class*="jobs-search-results__total-results"]',
+                    'h1[class*="results-context"]',
+                ]:
+                    try:
+                        el = self.driver.find_element(By.CSS_SELECTOR, selector)
+                        totalJobs = el.text.strip()
+                        break
+                    except Exception:
+                        pass
+
+            if not totalJobs:
+                # Last resort: check if any job cards are present on the page
+                cards = self.driver.find_elements(By.XPATH, '//li[@data-occludable-job-id]')
+                if not cards:
+                    urlWords = utils.urlToKeywords(url)
+                    lineToWrite = "\n Category: " + urlWords[0] + ", Location: " + urlWords[1] + ", No jobs found for this search criteria. Skipping..."
+                    self.displayWriteResults(lineToWrite)
+                    continue
+                totalJobs = str(len(cards))
 
             totalPages = utils.jobsToPages(totalJobs)
 

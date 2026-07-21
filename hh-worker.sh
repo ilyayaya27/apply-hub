@@ -58,7 +58,25 @@ refresh_and_reply() {
     log "WARN: refresh-token failed"
   fi
   log "reply-employers"
-  "$ROOT/reply-employers.sh" >>"$LOG" 2>&1 || log "WARN: reply-employers failed"
+  # Таймаут: 09.07 Groq так рейт-лимитил (429 с ретраями по 20-60с × 5 попыток
+  # на чат), что reply-employers съедал весь цикл и apply-vacancies ни разу не
+  # запустился за день — 0 новых откликов. Жёсткий потолок защищает основной
+  # поток откликов от деградации AI-провайдера.
+  # `!`-негация перед if стирала реальный код возврата ($? внутри then всегда
+  # был 0/1 от самой `!`, не от timeout) — таймаут (124) никогда не отличался
+  # от прочих ошибок в логе. Проверяем через if/else напрямую.
+  if timeout 240 "$ROOT/reply-employers.sh" >>"$LOG" 2>&1; then
+    rc=0
+  else
+    rc=$?
+  fi
+  if (( rc != 0 )); then
+    if (( rc == 124 )); then
+      log "WARN: reply-employers прерван по таймауту (240с) — вероятно, AI-провайдер лимитит"
+    else
+      log "WARN: reply-employers failed"
+    fi
+  fi
 }
 
 run_apply_cycle() {

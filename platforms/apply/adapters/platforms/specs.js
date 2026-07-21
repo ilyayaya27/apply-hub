@@ -89,7 +89,7 @@ export const PLATFORM_SPECS = {
   },
 
   /** SPA — проверить URL и форму после smoke */
-  tbank_careers: { ...CORP_RU, allowAutoSubmit: false },
+  tbank_careers: { ...CORP_RU, allowAutoSubmit: true }, // smoke OK 09.07.2026: name/email/phone/резюме заполняются корректно
 
   /**
    * team.vk.company — обычные вакансии. allowAutoSubmit: true (smoke OK 2026-07-01).
@@ -146,23 +146,17 @@ export const PLATFORM_SPECS = {
     allowAutoSubmit: false,
   },
 
+  /** antibot 403 без UA/args; клик "Откликнуться" открывает "Доступно после регистрации" — apply требует логин */
   hirehi: {
+    browserArgs: ANTIBOT_ARGS,
+    browserUserAgent: UA_CHROME,
     applyButtonSelectors: ['button:has-text("Откликнуться")', 'a:has-text("Откликнуться")'],
     waitFor: 'form',
     submitSelectors: ['button[type="submit"]'],
     allowAutoSubmit: false,
   },
 
-  jobrockets: {
-    applyButtonSelectors: [
-      'button:has-text("Отклиться")',
-      'a:has-text("Откликнуться")',
-      'button:has-text("Apply")',
-    ],
-    waitFor: 'form',
-    submitSelectors: ['button[type="submit"]'],
-    allowAutoSubmit: false,
-  },
+  // jobrockets removed — DNS dead (NXDOMAIN), deprecated in sources.yaml
 
   beeline_careers: {
     ...CORP_RU,

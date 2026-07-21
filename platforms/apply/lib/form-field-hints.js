@@ -55,6 +55,11 @@ export const valueForFieldKey = (profile, letter, key) => {
       return profile.phone ?? '';
     case 'portfolio':
       return profile.portfolio ?? profile.github ?? '';
+    case 'resume':
+      // Текстовое поле-ссылка на резюме (не файл — file input перехватывается
+      // раньше и сюда не попадает). Готового resume-URL в профиле нет, лучшее
+      // доступное — портфолио-ссылка.
+      return profile.portfolio ?? '';
     case 'coverLetter':
       return letter;
     default:

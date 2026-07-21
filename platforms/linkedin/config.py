@@ -19,18 +19,18 @@ chromeProfilePath = r"data/chrome-bot-profile/Default"
 # These settings are for running Linkedin job apply bot.
 # location you want to search the jobs - ex : ["Poland", "Singapore", "New York City Metropolitan Area", "Monroe County"]
 # continent locations:["Europe", "Asia", "Australia", "NorthAmerica", "SouthAmerica", "Africa", "Australia"]
-location = ["Worldwide"]
+location = ["Europe", "United Kingdom", "Netherlands", "Germany", "Poland", "Czech Republic", "Israel"]
 # keywords related with your job search
 keywords = [
-    "frontend",
-    "react",
-    "typescript",
-    "next.js",
+    "frontend developer",
+    "react developer",
+    "frontend engineer",
+    "react engineer",
 ]
 #job experience Level - ex:  ["Internship", "Entry level" , "Associate" , "Mid-Senior level" , "Director" , "Executive"]
 experienceLevels = ["Associate", "Mid-Senior level"]
 #job posted date - ex: ["Any Time", "Past Month" , "Past Week" , "Past 24 hours"] - select only one
-datePosted = ["Past Week"]
+datePosted = ["Past Month"]
 #job type - ex:  ["Full-time", "Part-time" , "Contract" , "Temporary", "Volunteer", "Intership", "Other"]
 jobType = ["Full-time", "Part-time" , "Contract"]
 #remote  - ex: ["On-site" , "Remote" , "Hybrid"]
@@ -156,8 +156,8 @@ maxApplicationsPerDay = 15
 maxApplicationsPerRun = 3
 # Connect: LinkedIn ~100/week hard cap; keep well under to avoid restrictions
 maxConnectsPerWeek = 40
-maxConnectsPerDay = 8
-maxConnectsPerRun = 3
+maxConnectsPerDay = 15
+maxConnectsPerRun = 5
 orchestratorCycleMinutes = 60
 workHourStart = 9
 workHourEnd = 20

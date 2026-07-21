@@ -12,6 +12,16 @@ import { applyRvcGlobal } from './workers/rvc-global.js';
 import { runGetmatch } from './workers/getmatch.js';
 import { runHnHiring } from './workers/hn-hiring.js';
 import { runWellfound } from './workers/wellfound.js';
+import { runRemoteOk } from './workers/remoteok.js';
+import { runWeWorkRemotely } from './workers/weworkremotely.js';
+import { runRwb } from './workers/rwb.js';
+import { runYandex } from './workers/yandex.js';
+import { runOzon } from './workers/ozon.js';
+import { runAvito } from './workers/avito.js';
+import { runSber } from './workers/sber.js';
+import { runTbank } from './workers/tbank.js';
+import { runBeeline } from './workers/beeline.js';
+import { runCloudru } from './workers/cloudru.js';
 import { runItptitsa } from './workers/itptitsa.js';
 import { runItptitsaShare } from './workers/itptitsa-share.js';
 import { runTriage } from './workers/triage.js';
@@ -122,6 +132,76 @@ if (cmd === 'hn-apply') {
   process.exit(out.ok ? 0 : 1);
 }
 
+if (cmd === 'remoteok-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runRemoteOk({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'weworkremotely-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runWeWorkRemotely({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'rwb-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runRwb({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'yandex-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runYandex({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'ozon-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runOzon({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'avito-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runAvito({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'sber-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runSber({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'tbank-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runTbank({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'beeline-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runBeeline({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
+if (cmd === 'cloudru-harvest') {
+  const limit = Number(process.argv.slice(3).find((a) => /^\d+$/.test(a)) ?? 20);
+  const out = await runCloudru({ limit });
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.ok ? 0 : 1);
+}
+
 if (cmd === 'inbox-check') {
   const dryRun = process.argv.includes('--dry-run') || process.env.APPLY_DRY_RUN === '1';
   const out = await runInboxCheck({ dryRun });
@@ -224,5 +304,13 @@ console.error(`Usage:
   cli.js notify-saved --stdin | "text"
   cli.js itptitsa-share [--dry-run]
   cli.js itptitsa-process [limit] [--dry-run]
+  cli.js rwb-harvest [limit]
+  cli.js yandex-harvest [limit]
+  cli.js ozon-harvest [limit]
+  cli.js avito-harvest [limit]
+  cli.js sber-harvest [limit]
+  cli.js tbank-harvest [limit]
+  cli.js beeline-harvest [limit]
+  cli.js cloudru-harvest [limit]
 `);
 process.exit(1);

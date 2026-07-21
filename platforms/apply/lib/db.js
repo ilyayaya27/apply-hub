@@ -66,6 +66,11 @@ export function getDb(dbPath) {
   }
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
+  // Несколько systemd-таймеров (harvest-воркеры) могут дёрнуть apply-next
+  // одновременно — WAL + busy_timeout не даёт им падать с "database is locked",
+  // вместо этого писатель ждёт своей очереди до 5с.
+  db.exec('PRAGMA journal_mode = WAL');
+  db.exec('PRAGMA busy_timeout = 5000');
   db.exec(SCHEMA);
   migrate(db);
   dbInstance = db;

@@ -28,7 +28,7 @@ const SHARE_STATE_FILE = join(DATA_DIR, 'itptitsa-share-state.json');
 // IT-Птица. Поиск работы
 const GROUP_ID = BigInt('-1003781373837');
 const TOPIC_ID = 33; // "Контакты HR и Вакансии"
-const MAX_DMS_PER_DAY = 5;
+const MAX_DMS_PER_DAY = Number(process.env.ITPTITSA_MAX_DMS ?? 10);
 const MSG_LIMIT = 50; // how many recent messages to scan
 
 const HH_URL_RE = /https?:\/\/(?:[\w-]+\.)?hh\.ru\/vacancy\/\d+[^\s]*/gi;
@@ -49,6 +49,21 @@ function loadShareKnownUsernames() {
   try {
     const s = JSON.parse(readFileSync(SHARE_STATE_FILE, 'utf8'));
     return new Set(Object.keys(s.posted ?? {}).map(u => u.toLowerCase()));
+  } catch {
+    return new Set();
+  }
+}
+
+// Ручной стоп-лист: контакты, которых написавший знает как уже отработанные
+// (например, уже писал сам лично), но которые бот больше никак отследить не может —
+// dmsSent и shareKnown видят только то, что сам бот/2-й аккаунт когда-то отправляли.
+// Формат: data/itptitsa-excluded.json — JSON-массив юзернеймов, без @, любой регистр.
+const EXCLUDE_FILE = join(DATA_DIR, 'itptitsa-excluded.json');
+function loadExcludedUsernames() {
+  if (!existsSync(EXCLUDE_FILE)) return new Set();
+  try {
+    const list = JSON.parse(readFileSync(EXCLUDE_FILE, 'utf8'));
+    return new Set((Array.isArray(list) ? list : []).map(u => String(u).replace(/^@/, '').toLowerCase()));
   } catch {
     return new Set();
   }
@@ -116,8 +131,19 @@ async function buildClient() {
     { connectionRetries: 3, useWSS: false, proxy }
   );
 
-  await client.connect();
+  // Таймаут на connect: без него зависший прокси/сессия убивает процесс с exit 13
+  // (unsettled top-level await), как это было 7 июля. Лучше явная ошибка + ретрай systemd.
+  await withTimeout(client.connect(), 30_000, 'Telegram connect');
   return { client, Api };
+}
+
+/** Оборачивает промис таймаутом, чтобы сетевой зависон превращался в reject, а не в вечное ожидание. */
+function withTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label}: timeout ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 async function reactToMessage(client, Api, peer, msgId) {
@@ -138,7 +164,7 @@ async function reactToMessage(client, Api, peer, msgId) {
 
 const DM_TEXT = `Здравствуйте! Нашёл ваш контакт на hh.ru.
 
-Frontend-разработчик, 5+ лет опыта. Последние 2,5 года — Альфа-Банк (React, TypeScript, Next.js). До этого — Evrone. Готов к офферам.
+Frontend-разработчик, 5+ лет опыта. Последние 2,5 года — Альфа-Банк (React, TypeScript, Next.js, SSR). До этого — DNS Retail: e-commerce и SaaS-продукты. Готов к офферам.
 
 Прикладываю резюме. Буду рад пообщаться!`;
 
@@ -194,6 +220,7 @@ export async function runItptitsa({ dryRun = false, limit = MSG_LIMIT } = {}) {
   const state = loadState();
   const processedSet = new Set(state.processedMsgIds);
   const shareKnown = loadShareKnownUsernames();
+  const excluded = loadExcludedUsernames();
 
   // Reset dmsToday counter if new day
   if (state.dmsToday.date !== todayStr()) {
@@ -206,10 +233,11 @@ export async function runItptitsa({ dryRun = false, limit = MSG_LIMIT } = {}) {
   const peer = await client.getInputEntity(GROUP_ID);
 
   // Fetch recent messages from the topic (replyTo = topicId in forum groups)
-  const messages = await client.getMessages(peer, {
-    limit,
-    replyTo: TOPIC_ID,
-  });
+  const messages = await withTimeout(
+    client.getMessages(peer, { limit, replyTo: TOPIC_ID }),
+    45_000,
+    'getMessages topic',
+  );
 
   console.log(`[itptitsa] fetched ${messages.length} messages from topic ${TOPIC_ID}`);
 
@@ -258,30 +286,54 @@ export async function runItptitsa({ dryRun = false, limit = MSG_LIMIT } = {}) {
     }
 
     // 2. Send DMs to HR contacts (rate limited)
+    let deferredForLimit = false; // остались контакты, не отправленные из-за дневного лимита
     for (const username of usernames) {
       if (shareKnown.has(username.toLowerCase())) {
         console.log(`[itptitsa]   @${username} already contacted via 2nd account, skip`);
         continue;
       }
-      if (state.dmsSent[username]) {
+      if (excluded.has(username.toLowerCase())) {
+        console.log(`[itptitsa]   @${username} in manual exclude list, skip`);
+        continue;
+      }
+      // Telegram-юзернеймы регистронезависимы (@HR_Ivan === @hr_ivan) — ключ дедупа
+      // должен быть нормализован, иначе один и тот же человек, упомянутый в разных
+      // постах с другим регистром, проходит проверку дважды.
+      const usernameKey = username.toLowerCase();
+      if (state.dmsSent[usernameKey]) {
         console.log(`[itptitsa]   @${username} already DMed, skip`);
         continue;
       }
       if (!dmsAllowedToday(state)) {
-        console.log(`[itptitsa]   DM limit reached (${MAX_DMS_PER_DAY}/day), skip @${username}`);
+        // Не теряем контакт: откладываем сообщение на следующий прогон (не реагируем, не помечаем обработанным)
+        console.log(`[itptitsa]   DM limit reached (${MAX_DMS_PER_DAY}/day), defer @${username} → next run`);
+        deferredForLimit = true;
         continue;
       }
 
       const ok = await sendDM(client, username, dryRun);
       if (ok) {
         if (!dryRun) {
-          state.dmsSent[username] = { sentAt: new Date().toISOString(), msgId };
+          state.dmsSent[usernameKey] = { sentAt: new Date().toISOString(), msgId, username };
           state.dmsToday.count++;
+          // Пишем на диск СРАЗУ после отправки, а не в конце обработки сообщения —
+          // иначе краш между отправкой и финальным saveState() теряет запись, и
+          // при рестарте бот повторно пишет тому же человеку (реальный случай:
+          // краш exit 13 из-за зависшего top-level await на connect через прокси).
+          saveState(state);
         }
         console.log(`[itptitsa]   ✅ DM → @${username}`);
         msgResult.actions.push({ type: 'dm', username, ok });
         await new Promise(r => setTimeout(r, 3000)); // polite delay
       }
+    }
+
+    // Если из-за дневного лимита остались неотправленные контакты — НЕ реагируем и НЕ помечаем
+    // сообщение обработанным, чтобы оно вернулось на следующем прогоне и контакты не потерялись.
+    if (deferredForLimit) {
+      console.log(`[itptitsa]   ↩ msg ${msgId} отложено: контакты сверх дневного лимита уйдут на следующем прогоне`);
+      results.push(msgResult);
+      continue;
     }
 
     // 3. React 👍 to message
@@ -300,6 +352,12 @@ export async function runItptitsa({ dryRun = false, limit = MSG_LIMIT } = {}) {
 
     results.push(msgResult);
     await new Promise(r => setTimeout(r, 500));
+  }
+
+  // Финальное сохранение: фиксируем сброс dmsToday даже если за прогон не было per-message сохранений
+  if (!dryRun) {
+    state.processedMsgIds = [...processedSet];
+    saveState(state);
   }
 
   await client.disconnect();

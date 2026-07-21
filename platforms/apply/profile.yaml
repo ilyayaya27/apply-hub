@@ -2,9 +2,9 @@
 active_market: ru
 role: Frontend Developer
 # Имя для форм: кириллица для RU-рынка, латиница для EN (LinkedIn / career forms)
-name_ru: Илья Зуев
-name_en: Ilya Zuev
-location: Berlin
+name_ru: Илья Мирнов
+name_en: Ilya Mirnov
+location: Москва
 markets:
   - ru_remote
 keywords:
@@ -26,8 +26,10 @@ market_assets:
   ru:
     cover_letter_path: /home/alice/Documents/apply-hub/letter.txt
     resume_path: /home/alice/Documents/apply-hub/resume_ru.pdf
-    hh_resume_id: 7ddbda16ff109325f00039ed1f774437315866
+    hh_resume_id: eff1c570ff10c4fc240039ed1f6c3966574146
 contact:
-  telegram: "@ilyayaya27"
+  telegram: "@ilyailyailya27"
   email: "ilyasilkin27@gmail.com"
-  phone: "+79958890127"
+  phone: "+79950901272"
+  linkedin: "https://www.linkedin.com/in/ilya-silkin-front-dev/"
+  portfolio: "https://ilya-silkin-portfolio.vercel.app"

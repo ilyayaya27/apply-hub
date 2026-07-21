@@ -237,6 +237,22 @@ class LinkedinUrlGenerate:
                 jobLoc +=  "&geoId=101452733"
             case "africa":
                 jobLoc += "&geoId=103537801"
+            case "united kingdom":
+                jobLoc += "&geoId=101165590"
+            case "netherlands":
+                jobLoc += "&geoId=102890719"
+            case "germany":
+                jobLoc += "&geoId=101282230"
+            case "poland":
+                jobLoc += "&geoId=105072130"
+            case "czech republic":
+                jobLoc += "&geoId=104508036"
+            case "israel":
+                jobLoc += "&geoId=101620260"
+            case "france":
+                jobLoc += "&geoId=105015875"
+            case "canada":
+                jobLoc += "&geoId=101174742"
 
         return jobLoc
 

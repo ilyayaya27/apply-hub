@@ -48,7 +48,9 @@ const CHECKS = [
   },
   { name: 'hh-worker', kind: 'service', unit: 'hh-worker.service' },
   { name: 'telegram-worker', kind: 'service', unit: 'telegram-worker.service' },
-  { name: 'linkedin-worker', kind: 'service', unit: 'linkedin-worker.service' },
+  // linkedin-worker выключен осознанно (анти-автоматизационный флаг LinkedIn 08.07.2026).
+  // Не мониторим, чтобы watchdog не спамил «down». Вернуть строку при возобновлении.
+  // { name: 'linkedin-worker', kind: 'service', unit: 'linkedin-worker.service' },
 ];
 
 /** Рабочие часы воркеров: 8:00–21:00 по локальному времени */

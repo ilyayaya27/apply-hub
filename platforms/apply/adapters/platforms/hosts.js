@@ -15,7 +15,7 @@ export const CAREER_PLATFORMS = [
   { id: 'djinni', pattern: /djinni\.(?:co|io)/i },
   { id: 'getmatch', pattern: /getmatch\.ru/i },
   { id: 'hirehi', pattern: /hirehi\.ru/i },
-  { id: 'jobrockets', pattern: /jobrockets\.ru/i },
+  // jobrockets — DNS dead (NXDOMAIN), deprecated: см. sources.yaml / docs/CAREER_SMOKE.md
   { id: 'beeline_careers', pattern: /job\.beeline\.ru/i },
   { id: 'moysklad_careers', pattern: /moysklad\.ru\/company\/careers/i },
   { id: 'alfabank_careers', pattern: /job\.alfabank\.ru/i },

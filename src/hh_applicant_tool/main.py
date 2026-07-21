@@ -384,6 +384,7 @@ class HHApplicantTool(MegaTool):
             system_prompt=system_prompt,
             base_url=base_url,
             rate_limit=c.get("rate_limit", 40),
+            max_retries=c.get("max_retries", 5),
             session=self.openai_session,
         )
 

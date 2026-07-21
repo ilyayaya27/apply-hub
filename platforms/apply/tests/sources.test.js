@@ -20,7 +20,7 @@ describe('sources.yaml registry', () => {
     expect(ids).toContain('djinni');
     expect(ids).toContain('getmatch');
     expect(ids).toContain('hirehi');
-    expect(ids).toContain('jobrockets');
+    expect(ids).not.toContain('jobrockets'); // DNS dead (NXDOMAIN), deprecated
     expect(ids).not.toContain('hh');
   });
 });

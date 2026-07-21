@@ -91,6 +91,11 @@ class Operation(BaseOperation):
 
     __aliases__ = ("apply", "apply-similar")
 
+    # Кэп откликов на одно резюме за цикл при A/B (несколько резюме без --resume-id).
+    # Держит его заметно ниже дневного лимита hh.ru (~200), чтобы за один цикл
+    # все резюме успели получить свою долю прежде, чем лимит исчерпается.
+    PER_RESUME_CYCLE_LIMIT = 15
+
     def setup_parser(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument("--resume-id", help="Идентефикатор резюме")
         parser.add_argument(
@@ -757,6 +762,22 @@ class Operation(BaseOperation):
             logger.warning("У вас нет опубликованных резюме")
             return
 
+        # A/B: перемешиваем порядок резюме каждый цикл. seen_employers дедуплицирует
+        # работодателей между резюме, а все варианты таргетят один пул вакансий —
+        # без перемешивания первое по списку резюме забирало бы все отклики.
+        if not self.resume_id:
+            random.shuffle(resumes)
+
+        # Дневной лимит откликов hh.ru общий на аккаунт, а не на резюме. Без кэпа
+        # первое резюме в первом цикле дня в одиночку выжирает весь лимит (~200) —
+        # остальные варианты за весь день не получают ни одного отклика. Кэп на
+        # цикл заставляет резюме уступать очередь друг другу внутри одного дня.
+        cycle_limit = (
+            None
+            if self.resume_id or len(resumes) <= 1
+            else self.PER_RESUME_CYCLE_LIMIT
+        )
+
         me: datatypes.User = self.tool.get_me()
         seen_employers = set()
 
@@ -765,6 +786,7 @@ class Operation(BaseOperation):
                 resume=resume,
                 user=me,
                 seen_employers=seen_employers,
+                cycle_limit=cycle_limit,
             )
             if limit_reached:
                 logger.warning(
@@ -787,6 +809,7 @@ class Operation(BaseOperation):
         resume: datatypes.Resume,
         user: datatypes.User,
         seen_employers: set[str],
+        cycle_limit: int | None = None,
     ) -> bool:
         logger.info(
             "Начинаю рассылку откликов для резюме: %s (%s)",
@@ -841,6 +864,14 @@ class Operation(BaseOperation):
         for vacancy in self._get_vacancies(resume_id=resume["id"]):
             if getattr(self, '_cancel_event', None) and self._cancel_event.is_set():
                 logger.info("Операция отменена пользователем")
+                break
+            if cycle_limit is not None and applied_count >= cycle_limit:
+                logger.info(
+                    "Кэп на цикл для резюме %s достигнут (%d) — уступаю очередь остальным",
+                    resume["title"],
+                    cycle_limit,
+                )
+                print(f"↪️ Кэп на цикл достигнут ({cycle_limit}) — уступаю очередь остальным резюме")
                 break
             try:
                 employer = vacancy.get("employer", {})
@@ -1218,8 +1249,13 @@ class Operation(BaseOperation):
                 "`authorize`. Тесты и капча требуют свежей веб-сессии."
             )
 
+        # hh стал HTML-энкодить embedded JSON на этой странице (кавычки как
+        # &#34;, теги как &lt;/&gt;) — маркер и raw_decode ищем в
+        # разэкранированном тексте, иначе поиск маркера всегда мажет.
+        text = html.unescape(r.text)
+
         tests_marker = ',"vacancyTests":'
-        start_tests = r.text.find(tests_marker)
+        start_tests = text.find(tests_marker)
         if start_tests == -1:
             raise ValueError("tests not found.")
 
@@ -1230,7 +1266,7 @@ class Operation(BaseOperation):
         # JSON-объект через raw_decode — он сам остановится на его конце.
         try:
             data, _ = json.JSONDecoder(strict=False).raw_decode(
-                r.text, start_tests + len(tests_marker)
+                text, start_tests + len(tests_marker)
             )
             return data
         except json.JSONDecodeError as ex:

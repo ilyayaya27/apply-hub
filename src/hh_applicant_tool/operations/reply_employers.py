@@ -14,6 +14,7 @@ from ..screening_prompt import (
     build_reply_ai_query,
     contacts_from_config,
     ensure_telegram_footer,
+    is_no_reply_needed,
     resolve_reply_chat_prompts,
     screening_rules_from_config,
 )
@@ -41,6 +42,16 @@ logger = logging.getLogger(__package__)
 def _messaging_open(negotiation: datatypes.Negotiation) -> bool:
     """HH блокирует переписку при no_invitation / disabled_by_employer."""
     return negotiation.get("messaging_status") == "ok"
+
+
+def _is_employer_message(message: dict) -> bool:
+    """True, если автор сообщения — работодатель.
+
+    author может быть None (системное/служебное сообщение без отправителя) —
+    тогда message["author"]["participant_type"] падал с
+    TypeError: 'NoneType' object is not subscriptable.
+    """
+    return (message.get("author") or {}).get("participant_type") == "employer"
 
 
 def _published_resumes_for_reply(
@@ -212,7 +223,10 @@ class Operation(BaseOperation):
                 # except RepositoryError as e:
                 #     logger.exception(e)
 
-                if not (resume := resume_map.get(negotiation["resume"]["id"])):
+                # resume может быть None (отклик без резюме / резюме удалено) —
+                # тогда negotiation["resume"]["id"] падал с TypeError.
+                resume_ref = negotiation.get("resume") or {}
+                if not (resume := resume_map.get(resume_ref.get("id"))):
                     continue
 
                 updated_at = parse_api_datetime(negotiation["updated_at"])
@@ -282,8 +296,7 @@ class Operation(BaseOperation):
                             continue
                         author = (
                             "Работодатель"
-                            if message["author"]["participant_type"]
-                            == "employer"
+                            if _is_employer_message(message)
                             else "Я"
                         )
                         message_date = parse_api_datetime(
@@ -301,9 +314,7 @@ class Operation(BaseOperation):
                 if not last_message:
                     continue
 
-                is_employer_message = (
-                    last_message["author"]["participant_type"] == "employer"
-                )
+                is_employer_message = _is_employer_message(last_message)
 
                 # Отвечаем ТОЛЬКО когда работодатель реально написал последним.
                 # Раньше было "or not viewed_by_opponent" — из-за чего бот слал
@@ -317,6 +328,12 @@ class Operation(BaseOperation):
                         )
                         logger.debug(f"Template message: {send_message}")
                     elif self.cover_letter_ai:
+                        if is_no_reply_needed(last_message.get("text") or ""):
+                            logger.info(
+                                "Чат %s: типовая отписка работодателя без вопроса — ответ не нужен, пропуск",
+                                nid,
+                            )
+                            continue
                         try:
                             resume_context = self._build_resume_context(resume)
                             ai_query = build_reply_ai_query(

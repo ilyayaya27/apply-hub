@@ -92,10 +92,11 @@
 
 - id: jobrockets
   type: platform
-  enabled: true
+  enabled: false
   market: ru
-  automation_tier: apply_auto
+  automation_tier: deprecated
   host: jobrockets.ru
+  notes: "DNS dead (NXDOMAIN), см. docs/CAREER_SMOKE.md"
 
 - id: jobleads
   type: platform
@@ -108,3 +109,83 @@
   enabled: true
   market: ru
   automation_tier: manual
+
+- id: remoteok
+  type: platform
+  enabled: true
+  market: global
+  automation_tier: manual
+  host: remoteok.com
+  notes: "Harvest via public JSON API (workers/remoteok.js) — no live auto-apply, see cli.js remoteok-harvest"
+
+- id: weworkremotely
+  type: platform
+  enabled: true
+  market: global
+  automation_tier: manual
+  host: weworkremotely.com
+  notes: "Harvest via public RSS feed (workers/weworkremotely.js) — no live auto-apply, see cli.js weworkremotely-harvest"
+
+- id: rwb
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: career.rwb.ru
+  notes: "Wildberries career site — harvest via public JSON API (workers/rwb.js), filters by direction_role_title. Routes to rwb_careers (allowAutoSubmit: true in specs.js) — actual apply happens via apply-next/apply-dispatcher, not the harvest worker. See cli.js rwb-harvest"
+
+- id: yandex
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: yandex.ru/jobs
+  notes: "Harvest via public JSON API (workers/yandex.js), server-side professions=frontend-developer filter (no per-item role field). Routes to yandex_careers (allowAutoSubmit: true). See cli.js yandex-harvest"
+
+- id: ozon
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: career.ozon.ru
+  notes: "Harvest via job-api.ozon.ru (workers/ozon.js) — plain public JSON, no WAF, department=Ozon Tech filter, verified live. career.ozon.ru itself has a flaky antibot challenge (~50% block rate even for real browsers) that affects the actual apply step, not harvest. Routes to ozon_careers (allowAutoSubmit: true). See cli.js ozon-harvest"
+
+- id: avito
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: career.avito.com
+  notes: "No public API (Bitrix CMS) — harvest via cheerio-scraping the /vacancies/razrabotka/ SSR page (workers/avito.js), filters by title. Routes to avito_careers (allowAutoSubmit: true). See cli.js avito-harvest"
+
+- id: sber
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: rabota.sber.ru
+  notes: "Harvest via public JSON API (workers/sber.js), no server-side category filter so scans newest 500 listings client-side (ponytail-scoped, see file). Routes to sber_careers (allowAutoSubmit: true). See cli.js sber-harvest"
+
+- id: tbank
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: tbank.ru
+  notes: "No JSON API (GraphQL filter flag off for anon) — harvest via scraping __TRAMVAI_STATE__ SSR blob on /career/vacancies/it/ (workers/tbank.js), filters by title. Routes to tbank_careers (allowAutoSubmit: true). See cli.js tbank-harvest"
+
+- id: beeline
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: job.beeline.ru
+  notes: "Harvest via public JSON API (workers/beeline.js), filters by role taxonomy field. Routes to beeline_careers (allowAutoSubmit: true). See cli.js beeline-harvest"
+
+- id: cloudru
+  type: platform
+  enabled: true
+  market: ru
+  automation_tier: manual
+  host: cloud.ru/career
+  notes: "Harvest via public JSON API (workers/cloudru.js), no WAF, filters by position field. Routes to cloudru_careers (allowAutoSubmit: true). See cli.js cloudru-harvest"

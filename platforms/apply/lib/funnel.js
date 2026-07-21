@@ -105,7 +105,7 @@ export function buildFunnelReport() {
     };
   });
 
-  const replyRatePct = applied > 0 ? Math.round((replies / applied) * 1000) / 10 : 0;
+  const replyRatePct = applied > 0 ? Math.round((directReplies / applied) * 1000) / 10 : 0;
 
   return {
     overall: {
